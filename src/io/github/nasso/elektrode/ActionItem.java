@@ -20,4 +20,8 @@ public class ActionItem implements InventoryItem {
 	public int getOrientation() {
 		return 0;
 	}
+
+	public String getDisplayName() {
+		return "Action item";
+	}
 }

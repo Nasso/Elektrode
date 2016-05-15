@@ -51,4 +51,8 @@ public class NodeItem implements InventoryItem {
 	public int getOrientation() {
 		return 0;
 	}
+
+	public String getDisplayName() {
+		return this.getSource().getSimpleName();
+	}
 }

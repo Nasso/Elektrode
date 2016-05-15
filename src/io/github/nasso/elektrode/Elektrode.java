@@ -79,6 +79,9 @@ public class Elektrode extends Application {
 						
 						for(Node n : nodes){
 							if(n.getX() == cx && n.getY() == cy){ // if there is already a node
+								// Replace it but with style
+								n.clearInputs();
+								n.clearOutputs();
 								nodes.remove(n);
 								break;
 							}
@@ -112,12 +115,23 @@ public class Elektrode extends Application {
 						}
 					}else if(item instanceof ActionItem){
 						double sx = event.getSceneX();
-						double sy = event.getSceneY();
+						double sy = sce.getHeight() - event.getSceneY();
 						
 						Node n = getNodeAt(sx, sy);
 						
 						if(n != null){
 							n.onAction();
+						}
+					}else if(item instanceof DeleteItem){
+						double sx = event.getSceneX();
+						double sy = sce.getHeight() - event.getSceneY();
+						
+						Node n = getNodeAt(sx, sy);
+						
+						if(n != null){
+							n.clearInputs();
+							n.clearOutputs();
+							nodes.remove(n);
 						}
 					}
 				}else if(event.getButton() == MouseButton.MIDDLE){
@@ -125,7 +139,7 @@ public class Elektrode extends Application {
 					
 					if(item instanceof ActionItem){
 						double sx = event.getSceneX();
-						double sy = event.getSceneY();
+						double sy = sce.getHeight() - event.getSceneY();
 						
 						Node n = getNodeAt(sx, sy);
 						
@@ -271,30 +285,16 @@ public class Elektrode extends Application {
  	}
 	
  	private Node getNodeAt(double sceneX, double sceneY){
- 		Node found = null;
- 		
- 		GraphicsContext gtx = cvs.getGraphicsContext2D(); // Just to ez
- 		
- 		gtx.save();			
-			gtx.translate(cvs.getWidth()/2, cvs.getHeight()/2);
-			gtx.scale(1, -1);
-			
-			gtx.scale(viewport.getScale(), viewport.getScale());
-			gtx.translate(viewport.getTranslateX(), viewport.getTranslateY());
-			
-	 		for(Node n : nodes){
-	 			gtx.beginPath();
-	 				gtx.rect(n.getX() - n.getWidth()/2, n.getY() - n.getHeight()/2, n.getWidth(), n.getHeight());
-	 				
-	 				if(gtx.isPointInPath(sceneX, sceneY)){
-	 					found = n;
-		 				break;
-	 				}
-	 			gtx.closePath();
-	 		}
-	 	gtx.restore();
+ 		int cx = (int) Math.floor(sceneToWorldX(sceneX));
+		int cy = (int) Math.ceil(sceneToWorldY(sceneY));
+		
+		for(Node n : nodes){
+			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
+				return n;
+			}
+		}
 	 	
- 		return found;
+ 		return null;
  	}
  	
 	public void start(Stage stg) throws Exception {
@@ -348,6 +348,7 @@ public class Elektrode extends Application {
 		// Inventory
 		inventory.addItem(new WireItem());
 		inventory.addItem(new ActionItem());
+		inventory.addItem(new DeleteItem());
 		inventory.addItem(new NodeItem(Generator.class));
 		inventory.addItem(new NodeItem(NoLogicGate.class));
 		inventory.addItem(new NodeItem(AndLogicGate.class));

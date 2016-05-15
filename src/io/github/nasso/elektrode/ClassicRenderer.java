@@ -17,6 +17,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 
+import com.sun.javafx.tk.Toolkit;
+
 public class ClassicRenderer implements Renderer {
 	public static final Color
 		BACK = Color.rgb(32, 32, 32),
@@ -26,11 +28,16 @@ public class ClassicRenderer implements Renderer {
 		PASSIVE_NODE_FILL = Color.WHITE,
 		ACTIVE_NODE_STROKE = ENABLED_WIRE,
 		ACTIVE_NODE_FILL = ENABLED_WIRE,
-		LAMP_ON = Color.ORANGE,
+		LAMP_ON = Color.rgb(255, 210, 0),
 		LAMP_OFF = BACK,
 		GRID = Color.rgb(48, 48, 48),
 		INPUT = Color.WHITE,
-		OUTPUT = Color.WHITE;
+		OUTPUT = Color.WHITE,
+		HUD_TEXT = Color.WHITE,
+		HUD_BACK = Color.rgb(16, 16, 16, 0.5);
+	
+	public static final Font
+		HUD_FONT = Font.font("Arial", 20);
 	
 	public static enum RenderType {
 		UNKNOWN,
@@ -57,7 +64,7 @@ public class ClassicRenderer implements Renderer {
 	private Output originWireOutput = null;
 	private Point2D mousePos = null;
 	private List<Node> nodes = null;
-	private double delta = 0;
+	// private double delta = 0;
 	private long nowms = 0;
 	
 	public void render(
@@ -77,7 +84,7 @@ public class ClassicRenderer implements Renderer {
 		this.originWireOutput = originWireOutput;
 		this.mousePos = mousePos;
 		this.nodes = nodes;
-		this.delta = delta;
+		// this.delta = delta;
 		this.nowms = nowms;
 		
 		double scale = v.getScale();
@@ -211,6 +218,32 @@ public class ClassicRenderer implements Renderer {
 			
 			renderRenderableAt(inventory.getItemFromSelected(-2), cvs.getWidth()/100 - 2.4, 0.8, 50);
 		gtx.restore();
+		
+		gtx.save();
+			gtx.setTransform(new Affine());
+			
+			// BACKGROUND
+			String displayName = inventory.getSelectedItem().getDisplayName();
+			
+			double tw = Toolkit.getToolkit().getFontLoader().getFontMetrics(HUD_FONT).computeStringWidth(displayName);
+			
+			double vMargin = 4;
+			double hMargin = 8;
+			
+			gtx.setFill(HUD_BACK);
+			
+			gtx.fillRect(cvs.getWidth()/2 - tw/2 - hMargin, cvs.getHeight()-100 - HUD_FONT.getSize()/2 - vMargin, tw + hMargin*2, HUD_FONT.getSize() + vMargin*2);
+			
+			// END_BACKGROUND
+			
+			gtx.setFill(HUD_TEXT);
+			gtx.setFont(HUD_FONT);
+			
+			gtx.setTextAlign(TextAlignment.CENTER);
+			gtx.setTextBaseline(VPos.CENTER);
+			
+			gtx.fillText(displayName, cvs.getWidth()/2, cvs.getHeight() - 100);
+		gtx.restore();
 	}
 	
 	private void renderNodes(){
@@ -335,16 +368,8 @@ public class ClassicRenderer implements Renderer {
 		gtx.restore();
 	}
 	
-	private void renderRenderable(Renderable r){
-		this.renderRenderable(r, scale);
-	}
-	
 	private void renderRenderableInWorld(Renderable r){
 		renderRenderableAt(r, r.getX() + translateX + cvs.getWidth()/2 / scale, r.getY() + translateY + cvs.getHeight()/2 / scale);
-	}
-	
-	private void renderRenderable(Renderable r, double scale){
-		this.renderRenderableAt(r, r.getX(), r.getY(), scale);
 	}
 	
 	private void renderRenderableAt(Renderable r, double x, double y){
@@ -355,6 +380,15 @@ public class ClassicRenderer implements Renderer {
 		this.renderRenderableAt(r, x, y, r.getWidth(), r.getHeight(), scale);
 	}
 	
+	/**
+	 * This is where everything (almost) is done
+	 * @param r
+	 * @param x
+	 * @param y
+	 * @param width
+	 * @param height
+	 * @param scale
+	 */
 	private void renderRenderableAt(Renderable r, double x, double y, double width, double height, double scale){
 		GraphicsContext gtx = cvs.getGraphicsContext2D();
 		
@@ -467,8 +501,14 @@ public class ClassicRenderer implements Renderer {
 					gtx.strokeLine(width/4, height/4, width/4, -height/4);
 				}
 			}else if(renderType == RenderType.ON_LAMP_COMPONENT_NODE || renderType == RenderType.OFF_LAMP_COMPONENT_NODE){
+				
 				if(renderType == RenderType.ON_LAMP_COMPONENT_NODE){
 					gtx.setFill(LAMP_ON);
+					
+					gtx.setEffect(new GaussianBlur(1));
+					gtx.fillOval(-width * 0.7, -height * 0.7, width * 1.4, height * 1.4);
+					
+					gtx.setEffect(null);
 				}else{
 					gtx.setFill(LAMP_OFF);
 				}

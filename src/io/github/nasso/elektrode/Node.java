@@ -50,6 +50,11 @@ public class Node implements Renderable {
 	}
 	
 	public void clearOutputs(){
+		for(Output out : outputs){
+			out.setOn(false);
+			out.clearDestinations();
+		}
+		
 		this.outputs.clear();
 	}
 	
@@ -79,6 +84,14 @@ public class Node implements Renderable {
 	}
 	
 	public void clearInputs(){
+		for(Input in : inputs){
+			Output origin = in.getOrigin();
+			
+			if(origin != null){
+				origin.removeDestination(in);
+			}
+		}
+		
 		this.inputs.clear();
 	}
 
