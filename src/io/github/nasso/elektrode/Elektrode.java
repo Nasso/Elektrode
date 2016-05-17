@@ -74,8 +74,8 @@ public class Elektrode extends Application {
 					if(item instanceof NodeItem){
 						Node clone = ((NodeItem) item).createNodeFromSource();
 						
-						int cx = (int) Math.floor(sceneToWorldX(event.getSceneX()));
-						int cy = (int) Math.ceil(sceneToWorldY(sce.getHeight() - event.getSceneY()));
+						int cx = (int) Math.floor(sceneToWorldX(event.getSceneX()) + 0.5);
+						int cy = (int) Math.ceil(sceneToWorldY(sce.getHeight() - event.getSceneY()) - 0.5);
 						
 						for(Node n : nodes){
 							if(n.getX() == cx && n.getY() == cy){ // if there is already a node
@@ -285,8 +285,8 @@ public class Elektrode extends Application {
  	}
 	
  	private Node getNodeAt(double sceneX, double sceneY){
- 		int cx = (int) Math.floor(sceneToWorldX(sceneX));
-		int cy = (int) Math.ceil(sceneToWorldY(sceneY));
+ 		int cx = (int) Math.floor(sceneToWorldX(sceneX) + 0.5);
+		int cy = (int) Math.ceil(sceneToWorldY(sceneY) - 0.5);
 		
 		for(Node n : nodes){
 			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
@@ -333,13 +333,13 @@ public class Elektrode extends Application {
 	}
 	
 	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / viewport.getScale() + 0.5 - viewport.getTranslateX();
+		double wx = (x - cvs.getWidth()/2) / viewport.getScale() - viewport.getTranslateX();
 		
 		return wx;
 	}
 	
 	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / viewport.getScale() - 0.5 - viewport.getTranslateY();
+		double wy = (y - cvs.getHeight()/2) / viewport.getScale() - viewport.getTranslateY();
 		
 		return wy;
 	}

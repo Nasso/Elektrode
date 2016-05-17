@@ -332,7 +332,6 @@ public class ClassicRenderer implements Renderer {
 						if(out == originWireOutput){
 							double mx = sceneToWorldX(mousePos.getX());
 							double my = sceneToWorldY(mousePos.getY());
-	
 							
 							gtx.setStroke(DISABLED_WIRE);
 							
@@ -748,20 +747,20 @@ public class ClassicRenderer implements Renderer {
 	}
 	
 	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / scale + 0.5 - translateX;
+		double wx = (x - cvs.getWidth()/2) / scale - translateX;
 		
 		return wx;
 	}
 	
 	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / scale - 0.5 - translateY;
+		double wy = (y - cvs.getHeight()/2) / scale - translateY;
 		
 		return wy;
 	}
 	
  	private Node getNodeAt(double sceneX, double sceneY){
- 		int cx = (int) Math.floor(sceneToWorldX(sceneX));
-		int cy = (int) Math.ceil(sceneToWorldY(sceneY));
+ 		int cx = (int) Math.floor(sceneToWorldX(sceneX) + 0.5);
+		int cy = (int) Math.ceil(sceneToWorldY(sceneY) - 0.5);
 		
 		for(Node n : nodes){
 			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
