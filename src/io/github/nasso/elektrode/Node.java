@@ -3,7 +3,7 @@ package io.github.nasso.elektrode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node implements Renderable {
+public abstract class Node implements Renderable {
 	private List<Input> inputs = new ArrayList<Input>();
 	private List<Output> outputs = new ArrayList<Output>();
 	
@@ -15,9 +15,7 @@ public class Node implements Renderable {
 	}
 	
 	// Actions
-	public void onAction(){
-		
-	}
+	public abstract void onAction();
 	
 	// Utilities
 	public void connectTo(Node n, int out, int in){
@@ -59,7 +57,19 @@ public class Node implements Renderable {
 	}
 	
 	public void setOutputValue(int i, boolean value){
+		if(!hasOutput(i)){
+			return;
+		}
+		
 		this.getOutput(i).setOn(value);
+	}
+	
+	public boolean hasInput(int i){
+		return i < inputs.size() && inputs.get(i) != null;
+	}
+	
+	public boolean hasOutput(int i){
+		return i < outputs.size() && outputs.get(i) != null;
 	}
 	
 	// Inputs
@@ -96,10 +106,18 @@ public class Node implements Renderable {
 	}
 
 	public boolean getInputValue(int i){
+		if(!hasInput(i)){
+			return false;
+		}
+		
 		return this.inputs.get(i).isOn();
 	}
 	
 	public boolean getOutputValue(int i){
+		if(!hasOutput(i)){
+			return false;
+		}
+		
 		return this.outputs.get(i).isOn();
 	}
 	

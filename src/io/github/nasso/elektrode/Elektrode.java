@@ -355,6 +355,7 @@ public class Elektrode extends Application {
 		inventory.addItem(new NodeItem(OrLogicGate.class));
 		inventory.addItem(new NodeItem(LampComponent.class));
 		inventory.addItem(new NodeItem(SwitchComponent.class));
+		inventory.addItem(new NodeItem(DelayNode.class));
 	}
 	
 	private void loopUpdate(double delta, long nowms){

@@ -20,6 +20,17 @@ import javafx.scene.transform.Affine;
 import com.sun.javafx.tk.Toolkit;
 
 public class ClassicRenderer implements Renderer {
+	/*
+	
+	How to add a component renderer:
+	- Add it to the RenderType enum
+	- Add it to the determineRenderType method
+	- Then render it in the renderRenderableAt method
+	
+	so ez m8 itz just meh mahself and i
+	
+	*/
+	
 	public static final Color
 		BACK = Color.rgb(32, 32, 32),
 		DISABLED_WIRE = Color.rgb(96, 70, 8),
@@ -34,7 +45,9 @@ public class ClassicRenderer implements Renderer {
 		INPUT = Color.WHITE,
 		OUTPUT = Color.WHITE,
 		HUD_TEXT = Color.WHITE,
-		HUD_BACK = Color.rgb(16, 16, 16, 0.5);
+		HUD_BACK = Color.rgb(16, 16, 16, 0.5),
+		TOOL_ITEM_PRIMARY = Color.WHITE,
+		TOOL_ITEM_SECONDARY = Color.rgb(237, 171, 18);
 	
 	public static final Font
 		HUD_FONT = Font.font("Arial", 20);
@@ -52,10 +65,12 @@ public class ClassicRenderer implements Renderer {
 		ON_LAMP_COMPONENT_NODE,
 		OPEN_SWITCH_COMPONENT,
 		CLOSE_SWITCH_COMPONENT,
+		DELAY_NODE,
 		
 		ITEM,
 		WIRE_ITEM,
-		ACTION_ITEM
+		ACTION_ITEM,
+		DELETE_ITEM
 	};
 	
 	private Canvas cvs = null;
@@ -596,7 +611,7 @@ public class ClassicRenderer implements Renderer {
 				
 				// First pass, with blur
 				gtx.setEffect(new GaussianBlur(0.08));
-				gtx.setFill(ACTIVE_NODE_FILL);
+				gtx.setFill(TOOL_ITEM_SECONDARY);
 				for(int i = 0; i < toothCount; i++){
 					double percent = (double) i / (double) toothCount;
 					double ang = 360.0 * percent + toothOffset - 90 - toothAngle/2; // minus 90 because better to start north !
@@ -608,7 +623,7 @@ public class ClassicRenderer implements Renderer {
 					gtx.closePath();
 				}
 
-				gtx.setFill(PASSIVE_NODE_FILL);
+				gtx.setFill(TOOL_ITEM_PRIMARY);
 				gtx.beginPath();
 					gtx.arc(0, 0, innerRadius, innerRadius, 0, 360);
 					gtx.arc(0, 0, radius, radius, 0, -360);
@@ -617,7 +632,7 @@ public class ClassicRenderer implements Renderer {
 
 				// Second pass, without blur
 				gtx.setEffect(null);
-				gtx.setFill(ACTIVE_NODE_FILL);
+				gtx.setFill(TOOL_ITEM_SECONDARY);
 				for(int i = 0; i < toothCount; i++){
 					double percent = (double) i / (double) toothCount;
 					double ang = 360.0 * percent + toothOffset - 90 - toothAngle/2; // minus 90 because better to start north !
@@ -629,12 +644,70 @@ public class ClassicRenderer implements Renderer {
 					gtx.closePath();
 				}
 
-				gtx.setFill(PASSIVE_NODE_FILL);
+				gtx.setFill(TOOL_ITEM_PRIMARY);
 				gtx.beginPath();
 					gtx.arc(0, 0, innerRadius, innerRadius, 0, 360);
 					gtx.arc(0, 0, radius, radius, 0, -360);
 					gtx.fill();
 				gtx.closePath();
+			}else if(renderType == RenderType.DELETE_ITEM){
+				// Render like a wire portion
+				
+				gtx.setStroke(PASSIVE_NODE_STROKE);
+				gtx.fillRect(-width/2, -height/2, width, height);
+				gtx.strokeRect(-width/2, -height/2, width, height);
+				
+				gtx.setStroke(TOOL_ITEM_PRIMARY);
+				gtx.setLineWidth(0.05);
+				
+				gtx.beginPath();
+					gtx.moveTo(-width/4, -height/4);
+					gtx.lineTo(width/4, height/4);
+					gtx.moveTo(-width/4, height/4);
+					gtx.lineTo(width/4, -height/4);
+					gtx.stroke();
+				gtx.closePath();
+			}else if(renderType == RenderType.DELAY_NODE){
+				// Render like a wire portion
+				gtx.setStroke(PASSIVE_NODE_STROKE);
+				gtx.fillRect(-width/2, -height/2, width, height);
+				gtx.strokeRect(-width/2, -height/2, width, height);
+				
+				// Oval
+				gtx.setLineWidth(0.04);
+				gtx.strokeOval(-width/4, -height/4, width/2, height/2);
+				
+				// Time marks
+				int timeMarksCount = 24;
+				
+				gtx.setLineWidth(0.01);
+				for(int i = 0; i < timeMarksCount; i++){
+					double percent = (double) i / (double) timeMarksCount;
+					double ang = 360 * percent - nowms * 0.005;
+					
+					gtx.save();
+						gtx.rotate(ang);
+						
+						gtx.strokeLine(width/4-0.05, 0, width/4-0.08, 0);
+					gtx.restore();
+				}
+				
+				if(r instanceof DelayNode){ // IF IT IS A DELAY NODE LOL
+					DelayNode dn = (DelayNode) r;
+					
+					if(getNodeAt(mousePos.getX(), mousePos.getY()) == dn){ // IF WE ARE POINTING AT IT OMG
+						gtx.save();
+							gtx.setTransform(new Affine());
+							
+							gtx.setFont(HUD_FONT);
+							
+							gtx.setFill(PASSIVE_NODE_FILL);
+							gtx.setTextBaseline(VPos.BOTTOM);
+							gtx.setTextAlign(TextAlignment.LEFT);
+							gtx.fillText(dn.getDelay()+" ms", mousePos.getX(), cvs.getHeight() - mousePos.getY());
+						gtx.restore();
+					}
+				}
 			}else{
 				renderSquareStringAt("?", isActive ? ACTIVE_NODE_FILL : PASSIVE_NODE_FILL, scale, 0, 0, width, height);
 			}
@@ -675,16 +748,29 @@ public class ClassicRenderer implements Renderer {
 	}
 	
 	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / scale - translateX;
+		double wx = (x - cvs.getWidth()/2) / scale + 0.5 - translateX;
 		
 		return wx;
 	}
 	
 	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / scale - translateY;
+		double wy = (y - cvs.getHeight()/2) / scale - 0.5 - translateY;
 		
 		return wy;
 	}
+	
+ 	private Node getNodeAt(double sceneX, double sceneY){
+ 		int cx = (int) Math.floor(sceneToWorldX(sceneX));
+		int cy = (int) Math.ceil(sceneToWorldY(sceneY));
+		
+		for(Node n : nodes){
+			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
+				return n;
+			}
+		}
+	 	
+ 		return null;
+ 	}
 	
 	private RenderType determineRenderType(Renderable r){
 		Class<? extends Renderable> c = null;
@@ -729,6 +815,10 @@ public class ClassicRenderer implements Renderer {
 			rt = RenderType.WIRE_ITEM;
 		}else if(c == ActionItem.class){
 			rt = RenderType.ACTION_ITEM;
+		}else if(c == DeleteItem.class){
+			rt = RenderType.DELETE_ITEM;
+		}else if(c == DelayNode.class){
+			rt = RenderType.DELAY_NODE;
 		}
 		
 		return rt;

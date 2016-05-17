@@ -14,4 +14,8 @@ public class LampComponent extends Node {
 	public boolean isActivated() {
 		return activated;
 	}
+	
+	public void onAction() {
+		// Nothing
+	}
 }
