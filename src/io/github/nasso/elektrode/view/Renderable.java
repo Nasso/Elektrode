@@ -1,4 +1,4 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.view;
 
 public interface Renderable {
 	public double getX();

@@ -1,4 +1,4 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.model;
 
 public class LampComponent extends Node {
 	private boolean activated = false;

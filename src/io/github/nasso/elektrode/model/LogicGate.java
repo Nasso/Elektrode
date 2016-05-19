@@ -1,4 +1,4 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.model;
 
 public abstract class LogicGate extends Node implements BooleanListener {
 	private boolean inverted = false;

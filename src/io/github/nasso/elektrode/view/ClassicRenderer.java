@@ -1,4 +1,21 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.view;
+
+import io.github.nasso.elektrode.model.ActionItem;
+import io.github.nasso.elektrode.model.AndLogicGate;
+import io.github.nasso.elektrode.model.DelayNode;
+import io.github.nasso.elektrode.model.DeleteItem;
+import io.github.nasso.elektrode.model.Generator;
+import io.github.nasso.elektrode.model.Input;
+import io.github.nasso.elektrode.model.Inventory;
+import io.github.nasso.elektrode.model.LampComponent;
+import io.github.nasso.elektrode.model.LogicGate;
+import io.github.nasso.elektrode.model.NoLogicGate;
+import io.github.nasso.elektrode.model.Node;
+import io.github.nasso.elektrode.model.NodeItem;
+import io.github.nasso.elektrode.model.OrLogicGate;
+import io.github.nasso.elektrode.model.Output;
+import io.github.nasso.elektrode.model.SwitchComponent;
+import io.github.nasso.elektrode.model.WireItem;
 
 import java.util.List;
 

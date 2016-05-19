@@ -1,4 +1,5 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.model;
+
 
 public class NodeItem implements InventoryItem {
 	private Class<? extends Node> source;

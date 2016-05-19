@@ -1,4 +1,4 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.view;
 
 public class Viewport {
 	private double scale = 1;

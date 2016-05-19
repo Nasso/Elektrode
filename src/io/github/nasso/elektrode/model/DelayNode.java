@@ -1,4 +1,6 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.model;
+
+import io.github.nasso.elektrode.LongDialog;
 
 import java.util.Timer;
 import java.util.TimerTask;

@@ -1,4 +1,8 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.view;
+
+import io.github.nasso.elektrode.model.Inventory;
+import io.github.nasso.elektrode.model.Node;
+import io.github.nasso.elektrode.model.Output;
 
 import java.util.List;
 

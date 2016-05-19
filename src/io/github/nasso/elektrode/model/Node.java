@@ -1,4 +1,6 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.model;
+
+import io.github.nasso.elektrode.view.Renderable;
 
 import java.util.ArrayList;
 import java.util.List;
