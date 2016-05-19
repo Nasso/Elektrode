@@ -6,7 +6,6 @@ import java.util.List;
 public class Output {
 	private boolean on = false;
 	private Node owner = null;
-	private int ownerIndex = 0;
 	private List<Input> destinations = new ArrayList<Input>();
 	
 	public Output(Node owner, int ownerIndex){
@@ -16,7 +15,6 @@ public class Output {
 	public Output(Node owner, int ownerIndex, boolean on){
 		this.on = on;
 		this.owner = owner;
-		this.ownerIndex = ownerIndex;
 	}
 	
 	public Input[] getDestinations() {
@@ -89,6 +87,6 @@ public class Output {
 	}
 	
 	public int getOwnerIndex(){
-		return this.ownerIndex;
+		return this.owner.getOutputIndex(this);
 	}
 }

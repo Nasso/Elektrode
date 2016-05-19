@@ -140,48 +140,47 @@ public class ClassicRenderer implements Renderer {
 	private void renderIOMarks(){
 		GraphicsContext gtx = cvs.getGraphicsContext2D();
 		
-		double inRadius = 0.15;
+		double inSize = 0.15;
 		double outRadius = 0.3;
 		double outAngle = 75;
 		
-		Paint inputPaint = new RadialGradient(0.0, 0.0, inRadius, inRadius, inRadius, false, CycleMethod.NO_CYCLE, new Stop(0, INPUT), new Stop(1, Color.TRANSPARENT));
+		Paint inputPaint = new RadialGradient(0.0, 0.0, inSize, inSize, inSize, false, CycleMethod.NO_CYCLE, new Stop(0, INPUT), new Stop(1, Color.TRANSPARENT));
 		Paint outputPaint = new RadialGradient(0.0, 0.0, outRadius, outRadius, outRadius, false, CycleMethod.NO_CYCLE, new Stop(0, OUTPUT), new Stop(1, Color.TRANSPARENT));
 		
 		gtx.save();
 			gtx.setLineWidth(2 / scale);
 			for(Node n : nodes){
-				double ix = n.getX() - n.getWidth()/2 - inRadius;
-				
 				// Draw inputs
 				Input[] ins = n.getInputs();
 				for(int i = 0; i < ins.length; i++){
-					double percent = (i + 0.5) / (double) ins.length;
+					Point2D ip = getInputPos(n, i);
 					
 					gtx.save();
-						double iy = n.getY() + n.getHeight()/2 - n.getHeight() * percent - inRadius;
-						
-						gtx.translate(ix, iy);
-						
+	 					gtx.translate(n.getX() + ip.getX(), n.getY() + ip.getY());
+	 					gtx.rotate(-90 * n.getOrientation());
+	 					gtx.translate(-inSize, -inSize);
+	 					
 						gtx.setFill(inputPaint);
 						
 						gtx.fillRect(
 							0,
-							inRadius/2,
-							inRadius,
-							inRadius
+							inSize/2,
+							inSize,
+							inSize
 						);
 					gtx.restore();
 				}
 				
-				double ox = n.getX() + n.getWidth()/2 - outRadius - 0.05;
-				
 				// Draw outputs
 				Output[] outs = n.getOutputs();
 				for(int i = 0; i < outs.length; i++){
+					Point2D op = getOutputPos(n, i);
+					
 					gtx.save();
-						double oy = n.getY() + n.getHeight()/2 - n.getHeight() * ((float) i+0.5f / outs.length) - outRadius;
-						
-						gtx.translate(ox, oy);
+	 					gtx.translate(n.getX() + op.getX(), n.getY() + op.getY());
+	 					gtx.rotate(-90 * n.getOrientation());
+	 					
+	 					gtx.translate(-outRadius, -outRadius);
 						
 						gtx.setFill(outputPaint);
 						
@@ -204,7 +203,7 @@ public class ClassicRenderer implements Renderer {
 		GraphicsContext gtx = cvs.getGraphicsContext2D();
 		
 		gtx.save();
-			gtx.setEffect(new GaussianBlur(0.5));
+			gtx.setEffect(new GaussianBlur(0.8));
 			
 			gtx.setGlobalAlpha(1.0);
 			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100, 1, 1, 1);
@@ -234,6 +233,7 @@ public class ClassicRenderer implements Renderer {
 			renderRenderableAt(inventory.getItemFromSelected(-2), cvs.getWidth()/100 - 2.4, 0.8, 50);
 		gtx.restore();
 		
+		// Item name
 		gtx.save();
 			gtx.setTransform(new Affine());
 			
@@ -276,27 +276,27 @@ public class ClassicRenderer implements Renderer {
 			
 			for(Node n : nodes){
 				gtx.save();
-					// TODO: gtx.translate(n.getX(), n.getY());
-					
 					Output[] outs = n.getOutputs();
 					for(int i = 0; i < outs.length; i++){
-						double percent = (i + 0.5) / (double) outs.length;
-						
 						Output out = outs[i];
+						
+						Point2D outp = getOutputPos(n, i);
 						
 						gtx.setStroke(DISABLED_WIRE);
 						
-						for(Input dest : out.getDestinations()){
+						for(int j = 0; j < out.getDestinations().length; j++){
+							Input dest = out.getDestination(j);
+							
 							Node destOwner = dest.getOwner();
 							
-							double ey = destOwner.getY() + destOwner.getHeight()/2 - destOwner.getHeight() * (dest.getOwnerIndex()+0.5f) / destOwner.getInputs().length;
+							Point2D dip = getInputPos(destOwner, j);
 							
 							gtx.strokeLine(
-								n.getX() + n.getWidth()/2,
-								n.getY() + n.getHeight()/2 - n.getHeight() * percent,
+								n.getX() + outp.getX(),
+								n.getY() + outp.getY(),
 								
-								destOwner.getX() - destOwner.getWidth()/2,
-								ey
+								destOwner.getX() + dip.getX(),
+								destOwner.getY() + dip.getY()
 							);
 							
 							if(out.isOn()){
@@ -308,21 +308,21 @@ public class ClassicRenderer implements Renderer {
 									gtx.setLineDashOffset((nowms * -0.0005));
 									gtx.setLineDashes(0.1);
 									gtx.strokeLine(
-										n.getX() + n.getWidth()/2,
-										n.getY() + n.getHeight()/2 - n.getHeight() * ((float) i+0.5f / outs.length),
+										n.getX() + outp.getX(),
+										n.getY() + outp.getY(),
 										
-										destOwner.getX() - destOwner.getWidth()/2,
-										ey
+										destOwner.getX() + dip.getX(),
+										destOwner.getY() + dip.getY()
 									);
 									
 									gtx.setEffect(null);
 									
 									gtx.strokeLine(
-										n.getX() + n.getWidth()/2,
-										n.getY() + n.getHeight()/2 - n.getHeight() * ((float) i+0.5f / outs.length),
+										n.getX() + outp.getX(),
+										n.getY() + outp.getY(),
 										
-										destOwner.getX() - destOwner.getWidth()/2,
-										ey
+										destOwner.getX() + dip.getX(),
+										destOwner.getY() + dip.getY()
 									);
 								gtx.restore();
 							}
@@ -333,11 +333,13 @@ public class ClassicRenderer implements Renderer {
 							double mx = sceneToWorldX(mousePos.getX());
 							double my = sceneToWorldY(mousePos.getY());
 							
+							Point2D op = getOutputPos(n, out.getOwnerIndex());
+							
 							gtx.setStroke(DISABLED_WIRE);
 							
 							gtx.strokeLine(
-									n.getX() + n.getWidth()/2,
-									n.getY() + n.getHeight()/2 - n.getHeight() * ((float) i+0.5f / outs.length),
+									n.getX() + op.getX(),
+									n.getY() + op.getY(),
 									
 									mx,
 									my
@@ -441,7 +443,7 @@ public class ClassicRenderer implements Renderer {
 			
 			// Rotate !
 			gtx.translate(x, y);
-			// TODO: gtx.rotate(90 * r.getOrientation());
+			gtx.rotate(-90 * r.getOrientation());
 			
 			// Rendering :D
 			gtx.setFill(BACK);
@@ -472,7 +474,8 @@ public class ClassicRenderer implements Renderer {
 				gtx.fill();
 				
 				if(!isInverted){
-					gtx.strokeLine(width/4, height/4, width/4, -height/4);
+					gtx.setLineWidth(0.01);
+					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
 			}else if(renderType == RenderType.AND_LOGIC_GATE_NODE){
 				gtx.fillRect(-width/2, -height/2, width, height);
@@ -492,7 +495,8 @@ public class ClassicRenderer implements Renderer {
 				gtx.fill();
 				
 				if(isInverted){
-					gtx.strokeLine(width/4, height/4, width/4, -height/4);
+					gtx.setLineWidth(0.01);
+					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
 			}else if(renderType == RenderType.OR_LOGIC_GATE_NODE){
 				gtx.fillRect(-width/2, -height/2, width, height);
@@ -512,10 +516,10 @@ public class ClassicRenderer implements Renderer {
 				gtx.fill();
 				
 				if(isInverted){
-					gtx.strokeLine(width/4, height/4, width/4, -height/4);
+					gtx.setLineWidth(0.01);
+					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
 			}else if(renderType == RenderType.ON_LAMP_COMPONENT_NODE || renderType == RenderType.OFF_LAMP_COMPONENT_NODE){
-				
 				if(renderType == RenderType.ON_LAMP_COMPONENT_NODE){
 					gtx.setFill(LAMP_ON);
 					
@@ -746,6 +750,38 @@ public class ClassicRenderer implements Renderer {
 		gtx.restore();
 	}
 	
+	// utilities
+	private Point2D getInputPos(Node n, int in){
+		double percent = (in + 0.5) / (double) n.getInputs().length;
+		
+		// Relative to the center
+		double x = -n.getWidth()/2;
+		double y = n.getHeight()/2 - n.getHeight() * percent;
+
+		double ang = -90 * n.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+		
+		return rotation.transform(x, y);
+	}
+	
+	private Point2D getOutputPos(Node n, int out){
+		double percent = (out + 0.5) / (double) n.getOutputs().length;
+		
+		// Relative to the center
+		double x = n.getWidth()/2;
+		double y = n.getHeight()/2 - n.getHeight() * percent;
+
+		double ang = -90 * n.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+
+		// - 0.05 on x just for swag, no calc errors, i promise (to myself)
+		return rotation.transform(x - 0.05, y);
+	}
+	
 	private double sceneToWorldX(double x){
 		double wx = (x - cvs.getWidth()/2) / scale - translateX;
 		
@@ -758,9 +794,19 @@ public class ClassicRenderer implements Renderer {
 		return wy;
 	}
 	
+	private int sceneToWorldXCase(double x){
+ 		int cx = (int) Math.floor(sceneToWorldX(x) + 0.5);
+		return cx;
+	}
+	
+	private int sceneToWorldYCase(double y){
+		int cy = (int) Math.ceil(sceneToWorldY(y) - 0.5);
+		return cy;
+	}
+	
  	private Node getNodeAt(double sceneX, double sceneY){
- 		int cx = (int) Math.floor(sceneToWorldX(sceneX) + 0.5);
-		int cy = (int) Math.ceil(sceneToWorldY(sceneY) - 0.5);
+ 		int cx = sceneToWorldXCase(sceneX);
+		int cy = sceneToWorldYCase(sceneY);
 		
 		for(Node n : nodes){
 			if(n.getX() == cx && n.getY() == cy){ // if there is already a node

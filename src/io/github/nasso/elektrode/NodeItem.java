@@ -3,8 +3,15 @@ package io.github.nasso.elektrode;
 public class NodeItem implements InventoryItem {
 	private Class<? extends Node> source;
 	
+	private String displayName = "missingno";
+	
 	public NodeItem(Class<? extends Node> sourceClass){
+		this(sourceClass, sourceClass.getSimpleName());
+	}
+	
+	public NodeItem(Class<? extends Node> sourceClass, String displayName){
 		this.source = sourceClass;
+		this.displayName = displayName;
 	}
 	
 	public Node createNodeFromSource(){
@@ -51,8 +58,8 @@ public class NodeItem implements InventoryItem {
 	public int getOrientation() {
 		return 0;
 	}
-
+	
 	public String getDisplayName() {
-		return this.getSource().getSimpleName();
+		return displayName;
 	}
 }

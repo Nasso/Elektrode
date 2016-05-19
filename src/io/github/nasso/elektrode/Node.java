@@ -3,16 +3,12 @@ package io.github.nasso.elektrode;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Node implements Renderable {
+public abstract class Node implements Renderable, Cloneable {
 	private List<Input> inputs = new ArrayList<Input>();
 	private List<Output> outputs = new ArrayList<Output>();
 	
 	private double x = 0, y = 0, width = 1, height = 1;
 	private int orientation = 0;
-	
-	public Node(){
-		// Default constructor
-	}
 	
 	// Actions
 	public abstract void onAction();
@@ -183,5 +179,9 @@ public abstract class Node implements Renderable {
 		}else if(orientation < 0){
 			orientation = 4 + (orientation % 4); // index/size will be negative, just add to the total-1
 		}
+	}
+
+	public int getOutputIndex(Output output) {
+		return outputs.indexOf(output);
 	}
 }

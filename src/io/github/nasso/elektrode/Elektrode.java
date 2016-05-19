@@ -10,15 +10,25 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
 
 public class Elektrode extends Application {
+	/*
+	 * 
+	 * CTRL + SHIFT + DIVIDE
+	 * 		collapse
+	 * 
+	 * CTRL + SHIFT + MULTIPLY
+	 * 		uncollapse
+	 * 
+	 */
+	
 	// FPS counter
 	private int fps = 0;
 	private int frameNum = 0;
@@ -65,7 +75,7 @@ public class Elektrode extends Application {
 		
 		sce.setOnMousePressed(new EventHandler<MouseEvent>(){
 			public void handle(MouseEvent event) {
-				if(event.getButton() == MouseButton.PRIMARY){
+			 	if(event.getButton() == MouseButton.PRIMARY){
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
 				}else if(event.getButton() == MouseButton.SECONDARY){
@@ -79,6 +89,23 @@ public class Elektrode extends Application {
 						
 						for(Node n : nodes){
 							if(n.getX() == cx && n.getY() == cy){ // if there is already a node
+								// Save in/outs
+								for(int i = 0, count = Math.min(clone.getInputs().length, n.getInputs().length);
+									i < count; i++){
+									Output origin = n.getInput(i).getOrigin();
+									
+									if(origin != null){
+										origin.addDestination(clone.getInput(i));
+									}
+								}
+								
+								for(int i = 0, count = Math.min(clone.getOutputs().length, n.getOutputs().length);
+										i < count; i++){
+									for(int j = 0; j < n.getOutput(i).getDestinations().length; j++){
+										clone.connectTo(n.getOutput(i).getDestination(j).getOwner(), i, j);
+									}
+								}
+								
 								// Replace it but with style
 								n.clearInputs();
 								n.clearOutputs();
@@ -135,17 +162,17 @@ public class Elektrode extends Application {
 						}
 					}
 				}else if(event.getButton() == MouseButton.MIDDLE){
-					InventoryItem item = inventory.getSelectedItem();
+					// Uncomment if other actions needed, but I think not
+					// InventoryItem item = inventory.getSelectedItem();
 					
-					if(item instanceof ActionItem){
-						double sx = event.getSceneX();
-						double sy = sce.getHeight() - event.getSceneY();
-						
-						Node n = getNodeAt(sx, sy);
-						
-						if(n != null){
-							n.turnRight();
-						}
+					// Always turn
+					double sx = event.getSceneX();
+					double sy = sce.getHeight() - event.getSceneY();
+					
+					Node n = getNodeAt(sx, sy);
+					
+					if(n != null){
+						n.turnRight();
 					}
 				}
 			}
@@ -184,104 +211,75 @@ public class Elektrode extends Application {
 		return sce;
 	}
  	
+ 	private Point2D getInputPos(Node n, int in){
+		double percent = (in + 0.5) / (double) n.getInputs().length;
+		
+		// Relative to the center
+		double x = -n.getWidth()/2;
+		double y = n.getHeight()/2 - n.getHeight() * percent;
+
+		double ang = -90 * n.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+		
+		return rotation.transform(x, y);
+	}
+	
+	private Point2D getOutputPos(Node n, int out){
+		double percent = (out + 0.5) / (double) n.getOutputs().length;
+		
+		// Relative to the center
+		double x = n.getWidth()/2;
+		double y = n.getHeight()/2 - n.getHeight() * percent;
+
+		double ang = -90 * n.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+
+		// - 0.05 on x just for swag, no calc errors, i promise (to myself)
+		return rotation.transform(x - 0.05, y);
+	}
+	
  	private Input getInputAt(double sceneX, double sceneY){
- 		Input found = null;
- 		
- 		GraphicsContext gtx = cvs.getGraphicsContext2D(); // Just to ez
- 		
  		double inRadius = 0.2;
  		
- 		gtx.save();			
-			gtx.translate(cvs.getWidth()/2, cvs.getHeight()/2);
-			gtx.scale(1, -1);
-			
-			gtx.scale(viewport.getScale(), viewport.getScale());
-			gtx.translate(viewport.getTranslateX(), viewport.getTranslateY());
-			
-	 		for(Node n : nodes){
-	 			double ix = n.getX() - n.getWidth()/2 - inRadius;
-	 			
-	 			Input[] ins = n.getInputs();
-	 			for(int i = 0; i < ins.length; i++){
-	 				gtx.save();
-	 					double iy = n.getY() + n.getHeight()/2 - n.getHeight() * (i+0.5f) / ins.length - inRadius;
-	 					
-	 					gtx.beginPath();
-		 					gtx.rect(
-		 						ix,
-		 						iy + inRadius/2,
-		 						inRadius,
-		 						inRadius
-		 					);
-		 					
-		 					if(gtx.isPointInPath(sceneX, sceneY)){
-		 						found = ins[i];
-		 					}
-	 					gtx.closePath();
-	 				gtx.restore();
-	 				
-	 				if(found != null){
-	 					break;
-	 				}
-	 			}
-	 			
-	 			if(found != null){
-	 				break;
-	 			}
-	 		}
-	 	gtx.restore();
+ 		for(Node n : nodes){
+ 			Input[] ins = n.getInputs();
+ 			for(int i = 0; i < ins.length; i++){
+ 				Point2D op = getInputPos(n, i).add(new Point2D(n.getX(), n.getY()));
+ 				Point2D sp = new Point2D(sceneToWorldX(sceneX), sceneToWorldY(cvs.getHeight() - sceneY));
+ 				
+ 				double distance = op.distance(sp);
+ 				
+ 				if(distance <= inRadius){ // "is in" trick with radius omg i'm a f*cking genius xd lol
+ 					return ins[i];
+ 				}
+ 			}
+ 		}
 	 	
- 		return found;
+ 		return null;
  	}
  	
  	private Output getOutputAt(double sceneX, double sceneY){
- 		Output found = null;
+ 		double outRadius = 0.3;
  		
- 		GraphicsContext gtx = cvs.getGraphicsContext2D(); // Just to ez
- 		
- 		double outRadius = 0.2;
- 		
- 		gtx.save();			
-			gtx.translate(cvs.getWidth()/2, cvs.getHeight()/2);
-			gtx.scale(1, -1);
-			
-			gtx.scale(viewport.getScale(), viewport.getScale());
-			gtx.translate(viewport.getTranslateX(), viewport.getTranslateY());
-			
-	 		for(Node n : nodes){
-	 			double ix = n.getX() + n.getWidth()/2 - outRadius;
-	 			
-	 			Output[] outs = n.getOutputs();
-	 			for(int i = 0; i < outs.length; i++){
-	 				gtx.save();
-	 					double iy = n.getY() + n.getHeight()/2 - n.getHeight() * ((float) i+0.5f / outs.length) - outRadius;
-	 					
-	 					gtx.beginPath();
-		 					gtx.rect(
-		 						ix,
-		 						iy + outRadius/2,
-		 						outRadius*2,
-		 						outRadius
-		 					);
-		 					
-		 					if(gtx.isPointInPath(sceneX, sceneY)){
-		 						found = outs[i];
-		 					}
-	 					gtx.closePath();
-	 				gtx.restore();
-	 				
-	 				if(found != null){
-	 					break;
-	 				}
-	 			}
-	 			
-	 			if(found != null){
-	 				break;
-	 			}
-	 		}
-	 	gtx.restore();
+ 		for(Node n : nodes){
+ 			Output[] outs = n.getOutputs();
+ 			for(int i = 0; i < outs.length; i++){
+ 				Point2D op = getOutputPos(n, i).add(new Point2D(n.getX(), n.getY()));
+ 				Point2D sp = new Point2D(sceneToWorldX(sceneX), sceneToWorldY(cvs.getHeight() - sceneY));
+ 				
+ 				double distance = op.distance(sp);
+ 				
+ 				if(distance <= outRadius){ // "is in" trick with radius omg i'm a f*cking genius xd lol
+ 					return outs[i];
+ 				}
+ 			}
+ 		}
 	 	
- 		return found;
+ 		return null;
  	}
 	
  	private Node getNodeAt(double sceneX, double sceneY){
@@ -345,17 +343,18 @@ public class Elektrode extends Application {
 	}
 	
 	private void initElogic(){
-		// Inventory
+		// TODO: Inventory
 		inventory.addItem(new WireItem());
 		inventory.addItem(new ActionItem());
 		inventory.addItem(new DeleteItem());
-		inventory.addItem(new NodeItem(Generator.class));
-		inventory.addItem(new NodeItem(NoLogicGate.class));
-		inventory.addItem(new NodeItem(AndLogicGate.class));
-		inventory.addItem(new NodeItem(OrLogicGate.class));
-		inventory.addItem(new NodeItem(LampComponent.class));
-		inventory.addItem(new NodeItem(SwitchComponent.class));
-		inventory.addItem(new NodeItem(DelayNode.class));
+		
+		inventory.addItem(new NodeItem(Generator.class, 		"Generator"));
+		inventory.addItem(new NodeItem(NoLogicGate.class, 		"No logic gate"));
+		inventory.addItem(new NodeItem(AndLogicGate.class, 		"And logic gate"));
+		inventory.addItem(new NodeItem(OrLogicGate.class, 		"Or logic gate"));
+		inventory.addItem(new NodeItem(LampComponent.class, 	"Lamp"));
+		inventory.addItem(new NodeItem(SwitchComponent.class, 	"Switch"));
+		inventory.addItem(new NodeItem(DelayNode.class, 		"Delay node"));
 	}
 	
 	private void loopUpdate(double delta, long nowms){
