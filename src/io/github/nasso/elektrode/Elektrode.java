@@ -16,20 +16,22 @@ import io.github.nasso.elektrode.model.OrLogicGate;
 import io.github.nasso.elektrode.model.Output;
 import io.github.nasso.elektrode.model.SwitchComponent;
 import io.github.nasso.elektrode.model.WireItem;
+import io.github.nasso.elektrode.model.World;
 import io.github.nasso.elektrode.view.ClassicRenderer;
 import io.github.nasso.elektrode.view.Renderer;
 import io.github.nasso.elektrode.view.Viewport;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
+import javafx.animation.Transition;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -37,6 +39,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class Elektrode extends Application {
 	/*
@@ -58,13 +61,14 @@ public class Elektrode extends Application {
 	private AnimationTimer timer;
 	
 	private Canvas cvs = null;
+	private MenuBar menuBar = null;
 	
 	private Viewport viewport = new Viewport(50);
 	private double lastX = -1;
 	private double lastY = -1;
 	
 	private Renderer renderer = new ClassicRenderer();
-	private List<Node> nodes = new ArrayList<Node>();
+	private World world = new World();
 	
 	private Inventory inventory = new Inventory();
 	private Output originWireOut = null;
@@ -72,7 +76,10 @@ public class Elektrode extends Application {
 	
  	private Scene createScene(Stage stg){
 		Group g = new Group();
+		menuBar = new MenuBar();
+		
 		g.getChildren().add(cvs = new Canvas());
+		// TODO: g.getChildren().add(menuBar = new MenuBar());
 		
 		Scene sce = new Scene(g);
 		
@@ -107,7 +114,7 @@ public class Elektrode extends Application {
 						int cx = (int) Math.floor(sceneToWorldX(event.getSceneX()) + 0.5);
 						int cy = (int) Math.ceil(sceneToWorldY(sce.getHeight() - event.getSceneY()) - 0.5);
 						
-						for(Node n : nodes){
+						for(Node n : world.getNodes()){
 							if(n.getX() == cx && n.getY() == cy){ // if there is already a node
 								// Save in/outs
 								for(int i = 0, count = Math.min(clone.getInputs().length, n.getInputs().length);
@@ -129,7 +136,7 @@ public class Elektrode extends Application {
 								// Replace it but with style
 								n.clearInputs();
 								n.clearOutputs();
-								nodes.remove(n);
+								world.getNodes().remove(n);
 								break;
 							}
 						}
@@ -137,7 +144,7 @@ public class Elektrode extends Application {
 						clone.setX(cx);
 						clone.setY(cy);
 						
-						nodes.add(clone);
+						world.getNodes().add(clone);
 					}else if(item instanceof WireItem){
 						double sx = event.getSceneX();
 						double sy = event.getSceneY();
@@ -178,7 +185,7 @@ public class Elektrode extends Application {
 						if(n != null){
 							n.clearInputs();
 							n.clearOutputs();
-							nodes.remove(n);
+							world.getNodes().remove(n);
 						}
 					}
 				}else if(event.getButton() == MouseButton.MIDDLE){
@@ -225,8 +232,64 @@ public class Elektrode extends Application {
 			}
 		});
 		
+		// Cvs
 		cvs.widthProperty().bind(sce.widthProperty());
 		cvs.heightProperty().bind(sce.heightProperty());
+		
+		// Menubar
+		Menu fileMenu = new Menu("File");
+		
+		MenuItem saveItem = new MenuItem("Save");
+		MenuItem saveAsItem = new MenuItem("Save as");
+
+		MenuItem loadItem = new MenuItem("Load");
+		
+		fileMenu.getItems().addAll(saveItem, saveAsItem, loadItem);
+		
+		menuBar.getMenus().addAll(fileMenu);
+		
+		double offOpacity = 0.5;
+		double transTime = 100;
+		final Animation fadeIn = new Transition() {
+			{
+				setCycleDuration(Duration.millis(transTime));
+			}
+			
+			protected void interpolate(double frac) {
+				menuBar.setOpacity(offOpacity + (1 - offOpacity) * frac);
+			}
+		};
+		
+		final Animation fadeOut = new Transition() {
+			{
+				setCycleDuration(Duration.millis(transTime));
+			}
+			
+			protected void interpolate(double frac) {
+				menuBar.setOpacity(1 - (1 - offOpacity) * frac);
+			}
+		};
+		
+		menuBar.prefWidthProperty().bind(sce.widthProperty());
+		menuBar.setOnMouseEntered(new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				fadeOut.stop();
+				
+				double t = (menuBar.getOpacity() - offOpacity) / (1 - offOpacity) * transTime;
+				
+				fadeIn.playFrom(Duration.millis(t));
+			}
+		});
+		menuBar.setOnMouseExited(new EventHandler<MouseEvent>(){
+			public void handle(MouseEvent event) {
+				fadeIn.stop();
+				
+				double t = (menuBar.getOpacity() - offOpacity) / (1 - offOpacity) * transTime;
+				
+				fadeOut.playFrom(Duration.millis(transTime - t));
+			}
+		});
+		menuBar.setOpacity(offOpacity);
 		
 		return sce;
 	}
@@ -265,7 +328,7 @@ public class Elektrode extends Application {
  	private Input getInputAt(double sceneX, double sceneY){
  		double inRadius = 0.2;
  		
- 		for(Node n : nodes){
+ 		for(Node n : world.getNodes()){
  			Input[] ins = n.getInputs();
  			for(int i = 0; i < ins.length; i++){
  				Point2D op = getInputPos(n, i).add(new Point2D(n.getX(), n.getY()));
@@ -285,7 +348,7 @@ public class Elektrode extends Application {
  	private Output getOutputAt(double sceneX, double sceneY){
  		double outRadius = 0.3;
  		
- 		for(Node n : nodes){
+ 		for(Node n : world.getNodes()){
  			Output[] outs = n.getOutputs();
  			for(int i = 0; i < outs.length; i++){
  				Point2D op = getOutputPos(n, i).add(new Point2D(n.getX(), n.getY()));
@@ -306,7 +369,7 @@ public class Elektrode extends Application {
  		int cx = (int) Math.floor(sceneToWorldX(sceneX) + 0.5);
 		int cy = (int) Math.ceil(sceneToWorldY(sceneY) - 0.5);
 		
-		for(Node n : nodes){
+		for(Node n : world.getNodes()){
 			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
 				return n;
 			}
@@ -378,7 +441,7 @@ public class Elektrode extends Application {
 	}
 	
 	private void loopUpdate(double delta, long nowms){
-		renderer.render(cvs, viewport, inventory, originWireOut, mousePos, nodes, delta, nowms);
+		renderer.render(cvs, viewport, inventory, originWireOut, mousePos, world, delta, nowms);
 	}
 	
 	public static void main(String[] args) {

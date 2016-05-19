@@ -16,6 +16,7 @@ import io.github.nasso.elektrode.model.OrLogicGate;
 import io.github.nasso.elektrode.model.Output;
 import io.github.nasso.elektrode.model.SwitchComponent;
 import io.github.nasso.elektrode.model.WireItem;
+import io.github.nasso.elektrode.model.World;
 
 import java.util.List;
 
@@ -105,7 +106,7 @@ public class ClassicRenderer implements Renderer {
 			Inventory inventory,
 			Output originWireOutput,
 			Point2D mousePos,
-			List<Node> nodes,
+			World world,
 			double delta,
 			long nowms) {
 		this.cvs = cvs;
@@ -115,7 +116,7 @@ public class ClassicRenderer implements Renderer {
 		this.inventory = inventory;
 		this.originWireOutput = originWireOutput;
 		this.mousePos = mousePos;
-		this.nodes = nodes;
+		this.nodes = world.getNodes();
 		// this.delta = delta;
 		this.nowms = nowms;
 		

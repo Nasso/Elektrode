@@ -1,4 +1,4 @@
-package io.github.nasso.elektrode;
+package io.github.nasso.elektrode.view;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
