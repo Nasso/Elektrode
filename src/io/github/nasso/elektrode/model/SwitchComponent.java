@@ -1,9 +1,11 @@
 package io.github.nasso.elektrode.model;
 
 public class SwitchComponent extends Node {
-	private boolean state = false;
+	public static final String STATE_PROP_NAME = "state";
 	
 	public SwitchComponent(){
+		setState(false);
+		
 		addInput().addStateListener(new BooleanListener() {
 			public void valueChanged(boolean newValue) {
 				update();
@@ -14,7 +16,7 @@ public class SwitchComponent extends Node {
 	}
 	
 	private void update(){
-		if(state){
+		if(getState()){
 			this.setOutputValue(0, this.getInputValue(0));
 		}else{
 			this.setOutputValue(0, false);
@@ -26,11 +28,15 @@ public class SwitchComponent extends Node {
 	}
 	
 	public boolean getState(){
-		return this.state;
+		return (boolean) this.getProperty(STATE_PROP_NAME);
+	}
+	
+	public void setState(boolean s){
+		setProperty(STATE_PROP_NAME, s);
 	}
 	
 	public void toggle(){
-		this.state = !state;
+		this.setState(!getState());
 		
 		update();
 	}

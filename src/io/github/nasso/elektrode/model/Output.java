@@ -26,10 +26,6 @@ public class Output {
 	}
 	
 	public Input addDestination(Input in){
-		if(!this.destinations.contains(in)){
-			this.destinations.add(in);
-		}
-		
 		Output origin = in.getOrigin();
 		
 		if(origin != null){
@@ -38,6 +34,10 @@ public class Output {
 		
 		in.setOn(this.isOn());
 		in.setOrigin(this);
+		
+		if(!this.destinations.contains(in)){
+			this.destinations.add(in);
+		}
 		
 		return in;
 	}

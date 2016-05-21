@@ -1,5 +1,7 @@
 package io.github.nasso.elektrode;
 
+import io.github.nasso.elektrode.data.WorldCodec;
+import io.github.nasso.elektrode.data.XMLWorldCodec;
 import io.github.nasso.elektrode.model.ActionItem;
 import io.github.nasso.elektrode.model.AndLogicGate;
 import io.github.nasso.elektrode.model.DelayNode;
@@ -20,11 +22,22 @@ import io.github.nasso.elektrode.model.World;
 import io.github.nasso.elektrode.view.ClassicRenderer;
 import io.github.nasso.elektrode.view.Renderer;
 import io.github.nasso.elektrode.view.Viewport;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.animation.Transition;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -33,11 +46,21 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.transform.Affine;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -59,9 +82,13 @@ public class Elektrode extends Application {
 	private long lastFrameTime = -1;
 	
 	private AnimationTimer timer;
+	private Stage stg = null;
 	
 	private Canvas cvs = null;
 	private MenuBar menuBar = null;
+	private String saveShortcut = "Ctrl+S";
+	private String saveAsShortcut = "Ctrl+Shift+S";
+	private String loadShortcut = "Ctrl+O";
 	
 	private Viewport viewport = new Viewport(50);
 	private double lastX = -1;
@@ -69,17 +96,22 @@ public class Elektrode extends Application {
 	
 	private Renderer renderer = new ClassicRenderer();
 	private World world = new World();
+	private WorldCodec codec = new XMLWorldCodec();
+	private Path openedPath = null;
+	private FileChooser fileChooser = null;
 	
 	private Inventory inventory = new Inventory();
 	private Output originWireOut = null;
 	private Point2D mousePos = new Point2D(0, 0);
 	
- 	private Scene createScene(Stage stg){
-		Group g = new Group();
-		menuBar = new MenuBar();
+	private Scene createScene(Stage stg){
+		fileChooser = new FileChooser();
+		fileChooser.setTitle("Choose a file");
+		fileChooser.getExtensionFilters().add(new ExtensionFilter("Elektrode World File", "*.ewf"));
 		
+		Group g = new Group();
 		g.getChildren().add(cvs = new Canvas());
-		// TODO: g.getChildren().add(menuBar = new MenuBar());
+		g.getChildren().add(menuBar = new MenuBar());
 		
 		Scene sce = new Scene(g);
 		
@@ -157,13 +189,15 @@ public class Elektrode extends Application {
 							Input in = getInputAt(sx, sy); // returns null if unfound
 							
 							if(in != null){ // if found
-								if(originWireOut != null && in.getOwner() != originWireOut.getOwner()){ // relies the wire if there is one
-									originWireOut.addDestination(in);
-									
-									originWireOut = null;
-								}else if(in.getOrigin() != null){ // take the wire
+								if(in.getOrigin() != null){ // take the wire
 									originWireOut = in.getOrigin();
 									originWireOut.removeDestination(in); // remove the old
+								}else if(originWireOut != null){ // relies the wire if there is one
+									if(in.getOwner() != originWireOut.getOwner()){
+										originWireOut.addDestination(in);
+										
+										originWireOut = null;
+									}
 								}
 							}
 						}
@@ -238,17 +272,13 @@ public class Elektrode extends Application {
 		
 		// Menubar
 		Menu fileMenu = new Menu("File");
-		
 		MenuItem saveItem = new MenuItem("Save");
 		MenuItem saveAsItem = new MenuItem("Save as");
-
-		MenuItem loadItem = new MenuItem("Load");
-		
+		MenuItem loadItem = new MenuItem("Open");
 		fileMenu.getItems().addAll(saveItem, saveAsItem, loadItem);
-		
 		menuBar.getMenus().addAll(fileMenu);
 		
-		double offOpacity = 0.5;
+		double offOpacity = 1; // Useless to 1 but if you want you can change it, transition are ready :D
 		double transTime = 100;
 		final Animation fadeIn = new Transition() {
 			{
@@ -259,7 +289,6 @@ public class Elektrode extends Application {
 				menuBar.setOpacity(offOpacity + (1 - offOpacity) * frac);
 			}
 		};
-		
 		final Animation fadeOut = new Transition() {
 			{
 				setCycleDuration(Duration.millis(transTime));
@@ -274,6 +303,11 @@ public class Elektrode extends Application {
 		menuBar.setOnMouseEntered(new EventHandler<MouseEvent>(){
 			public void handle(MouseEvent event) {
 				fadeOut.stop();
+
+				if(offOpacity == 1){
+					// Returns because it'll play from NaN (divide by zero, look carfully)
+					return;
+				}
 				
 				double t = (menuBar.getOpacity() - offOpacity) / (1 - offOpacity) * transTime;
 				
@@ -284,6 +318,11 @@ public class Elektrode extends Application {
 			public void handle(MouseEvent event) {
 				fadeIn.stop();
 				
+				if(offOpacity == 1){
+					// Returns because it'll play from NaN (divide by zero, look carfully)
+					return;
+				}
+				
 				double t = (menuBar.getOpacity() - offOpacity) / (1 - offOpacity) * transTime;
 				
 				fadeOut.playFrom(Duration.millis(transTime - t));
@@ -291,8 +330,97 @@ public class Elektrode extends Application {
 		});
 		menuBar.setOpacity(offOpacity);
 		
+		// MenuBar style !!
+		menuBar.setBackground(
+			new Background(
+				new BackgroundFill(
+					new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
+						new Stop(0, Color.grayRgb(255)),
+						new Stop(1, Color.grayRgb(230))
+					),
+					CornerRadii.EMPTY,
+					Insets.EMPTY
+				)
+			)
+		);
+		
+		saveItem.setAccelerator(KeyCombination.keyCombination(saveShortcut));
+		saveAsItem.setAccelerator(KeyCombination.keyCombination(saveAsShortcut));
+		loadItem.setAccelerator(KeyCombination.keyCombination(loadShortcut));
+		
+		saveItem.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent event) {
+				if(openedPath != null){
+					saveToFile(openedPath);
+				}else{
+					saveAsItem.fire();
+				}
+			}
+		});
+		saveAsItem.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent event) {
+				File f = fileChooser.showSaveDialog(stg);
+				
+				if(f == null){
+					return;
+				}
+				
+				Path path = f.toPath();
+				
+				saveToFile(path);
+				setOpenedPath(path);
+			}
+		});
+		loadItem.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent event) {
+				File f = fileChooser.showOpenDialog(stg);
+				
+				if(f == null){
+					return;
+				}
+
+				Path path = f.toPath();
+				
+				loadFromFile(path);
+				setOpenedPath(path);
+			}
+		});
+		
 		return sce;
 	}
+ 	
+	private void setOpenedPath(Path p){
+		openedPath = p;
+		// I thought I had to do something there but nope.
+		// Well, I'll just update the title to be faster, but it'll be updated anyway on the next loop
+		updateStageTitle();
+	}
+	
+ 	// Actions
+ 	public void save(OutputStream str) throws IOException{
+ 		codec.encode(str, world);
+ 	}
+ 	
+ 	public void load(InputStream str) throws IOException{
+ 		world = codec.decode(str);
+ 	}
+ 	
+ 	public void saveToFile(Path p){
+ 		try {
+ 			// Creates the file if it doesn't exists
+			save(Files.newOutputStream(p, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+ 	}
+ 	
+ 	public void loadFromFile(Path p){
+ 		try {
+			load(Files.newInputStream(p));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+ 	}
  	
  	private Point2D getInputPos(Node n, int in){
 		double percent = (in + 0.5) / (double) n.getInputs().length;
@@ -325,7 +453,7 @@ public class Elektrode extends Application {
 		return rotation.transform(x - 0.05, y);
 	}
 	
- 	private Input getInputAt(double sceneX, double sceneY){
+	private Input getInputAt(double sceneX, double sceneY){
  		double inRadius = 0.2;
  		
  		for(Node n : world.getNodes()){
@@ -344,7 +472,7 @@ public class Elektrode extends Application {
 	 	
  		return null;
  	}
- 	
+	
  	private Output getOutputAt(double sceneX, double sceneY){
  		double outRadius = 0.3;
  		
@@ -378,9 +506,13 @@ public class Elektrode extends Application {
  		return null;
  	}
  	
-	public void start(Stage stg) throws Exception {
+	public void start(Stage s) throws Exception {
+		this.stg = s;
+		
 		stg.setMaximized(true);
 		stg.setTitle("Elektrode");
+		stg.setMinWidth(580);
+		stg.setMinHeight(460);
 		stg.setScene(createScene(stg));
 		stg.show();
 		
@@ -393,14 +525,6 @@ public class Elektrode extends Application {
 				}
 				
 				double delta = nowms - lastFrameTime;
-				
-				frameNum++;
-				if(nowms - lastFPSUpdate > 1000l){
-					Elektrode.this.fps = frameNum;
-					stg.setTitle("Elogic - "+Elektrode.this.fps+"FPS");
-					frameNum = 0;
-					lastFPSUpdate = nowms;
-				}
 				
 				loopUpdate(delta, nowms);
 				
@@ -440,7 +564,24 @@ public class Elektrode extends Application {
 		inventory.addItem(new NodeItem(DelayNode.class, 		"Delay node"));
 	}
 	
+	private void updateStageTitle(){
+		if(openedPath != null){
+			stg.setTitle("Elogic - "+openedPath.getFileName()+" - "+Elektrode.this.fps+"FPS");
+		}else{
+			stg.setTitle("Elogic - "+Elektrode.this.fps+"FPS");
+		}
+	}
+	
 	private void loopUpdate(double delta, long nowms){
+		frameNum++;
+		if(nowms - lastFPSUpdate > 1000l){
+			Elektrode.this.fps = frameNum;
+			updateStageTitle();
+			
+			frameNum = 0;
+			lastFPSUpdate = nowms;
+		}
+		
 		renderer.render(cvs, viewport, inventory, originWireOut, mousePos, world, delta, nowms);
 	}
 	

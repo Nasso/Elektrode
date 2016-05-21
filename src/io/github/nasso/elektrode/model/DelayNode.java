@@ -4,16 +4,21 @@ import io.github.nasso.elektrode.view.LongDialog;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DelayNode extends Node {
-	private long delay = 1000;
+	private static final AtomicInteger delayID = new AtomicInteger(0);
+	public static final String DELAY_PROP_NAME = "delay";
+	
 	private Timer timer;
 	
 	private LongDialog dial;
 	
 	public DelayNode(){
+		this.setDelay(1000);
+		
 		dial = new LongDialog();
-		timer = new Timer(false);
+		timer = new Timer("DelayNode Timer-"+delayID.getAndIncrement(), true);
 		
 		addOutput();
 		
@@ -23,7 +28,7 @@ public class DelayNode extends Node {
 					public void run() {
 						setOutputValue(0, newValue);
 					}
-				}, delay);
+				}, getDelay());
 			}
 		});
 	}
@@ -33,7 +38,7 @@ public class DelayNode extends Node {
 	}
 	
 	public long getDelay() {
-		return delay;
+		return (long) getProperty(DELAY_PROP_NAME);
 	}
 	
 	/**
@@ -41,6 +46,6 @@ public class DelayNode extends Node {
 	 * @param delay
 	 */
 	public void setDelay(long delay) {
-		this.delay = delay;
+		this.setProperty(DELAY_PROP_NAME, delay);
 	}
 }

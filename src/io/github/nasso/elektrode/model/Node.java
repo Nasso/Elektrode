@@ -3,7 +3,9 @@ package io.github.nasso.elektrode.model;
 import io.github.nasso.elektrode.view.Renderable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Node implements Renderable, Cloneable {
 	private List<Input> inputs = new ArrayList<Input>();
@@ -11,6 +13,17 @@ public abstract class Node implements Renderable, Cloneable {
 	
 	private double x = 0, y = 0, width = 1, height = 1;
 	private int orientation = 0;
+	
+	private Map<String, Object> properties = new HashMap<String, Object>();
+	
+	// Constr
+	public Node(){
+		
+	}
+	
+	public Node(Map<String, Object> properties){
+		this.setProperties(properties);
+	}
 	
 	// Actions
 	public abstract void onAction();
@@ -22,6 +35,62 @@ public abstract class Node implements Renderable, Cloneable {
 	
 	public void disconnectFrom(Node n, int out, int in){
 		this.getOutput(out).removeDestination(n.getInput(in));
+	}
+	
+	public void changeInputCount(int targetInputs, BooleanListener l){
+		int effectiveInputs = this.getInputs().length;
+		
+		if(effectiveInputs < targetInputs){ // There are not enough inputs
+			for(int i = 0, count = targetInputs - effectiveInputs; i < count; i++){
+				this.addInput().addStateListener(l);
+			}
+		}else if(effectiveInputs > targetInputs){ // There are too much inputs
+			for(int i = 0, count = effectiveInputs - targetInputs; i < count; i++){
+				this.removeInput(effectiveInputs-i-1); // Removes the last input
+			}
+		}
+	}
+	
+	public void changeInputCount(int targetInputs){
+		changeInputCount(targetInputs, null);
+	}
+	
+	public void changeOutputCount(int targetOutputs){
+		int effectiveOutputs = this.getOutputs().length;
+		
+		if(effectiveOutputs < targetOutputs){ // There are not enough outputs
+			for(int i = 0, count = targetOutputs - effectiveOutputs; i < count; i++){
+				this.addOutput();
+			}
+		}else if(effectiveOutputs > targetOutputs){ // There are too much outputs
+			for(int i = 0, count = effectiveOutputs - targetOutputs; i < count; i++){
+				this.removeOutput(effectiveOutputs-i-1); // Removes the last output
+			}
+		}
+	}
+	
+	public void setProperty(String name, Object o){
+		properties.put(name, o);
+	}
+	
+	public Object getProperty(String name){
+		return properties.get(name);
+	}
+	
+	public boolean hasProperty(String name){
+		return this.properties.containsKey(name);
+	}
+	
+	public Map<String, Object> getProperties(){
+		return properties;
+	}
+	
+	public void setProperties(Map<String, Object> properties){
+		this.properties.putAll(properties);
+	}
+	
+	public void clearProperties(){
+		this.properties.clear();
 	}
 	
 	// Outputs
@@ -185,5 +254,9 @@ public abstract class Node implements Renderable, Cloneable {
 
 	public int getOutputIndex(Output output) {
 		return outputs.indexOf(output);
+	}
+	
+	public String toString(){
+		return "["+this.getClass().getSimpleName()+"]";
 	}
 }

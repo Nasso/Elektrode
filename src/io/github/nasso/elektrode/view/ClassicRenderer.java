@@ -18,7 +18,9 @@ import io.github.nasso.elektrode.model.SwitchComponent;
 import io.github.nasso.elektrode.model.WireItem;
 import io.github.nasso.elektrode.model.World;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.geometry.Point2D;
 import javafx.geometry.VPos;
@@ -79,10 +81,8 @@ public class ClassicRenderer implements Renderer {
 		AND_LOGIC_GATE_NODE,
 		OR_LOGIC_GATE_NODE,
 		
-		OFF_LAMP_COMPONENT_NODE,
-		ON_LAMP_COMPONENT_NODE,
-		OPEN_SWITCH_COMPONENT,
-		CLOSE_SWITCH_COMPONENT,
+		LAMP_COMPONENT_NODE,
+		SWITCH_COMPONENT,
 		DELAY_NODE,
 		
 		ITEM,
@@ -307,7 +307,8 @@ public class ClassicRenderer implements Renderer {
 							
 							Node destOwner = dest.getOwner();
 							
-							Point2D dip = getInputPos(destOwner, j);
+							Point2D dip = getInputPos(destOwner, dest.getOwnerIndex());
+							dip = new Point2D(dip.getX(), dip.getY());
 							
 							gtx.strokeLine(
 								n.getX() + outp.getX(),
@@ -321,8 +322,8 @@ public class ClassicRenderer implements Renderer {
 								gtx.save();
 									gtx.setStroke(ENABLED_WIRE);
 									
+									// Gaussian pass
 									gtx.setEffect(new GaussianBlur(16 / scale));
-									
 									gtx.setLineDashOffset((nowms * -0.0005));
 									gtx.setLineDashes(0.1);
 									gtx.strokeLine(
@@ -333,8 +334,8 @@ public class ClassicRenderer implements Renderer {
 										destOwner.getY() + dip.getY()
 									);
 									
+									// Normal pass
 									gtx.setEffect(null);
-									
 									gtx.strokeLine(
 										n.getX() + outp.getX(),
 										n.getY() + outp.getY(),
@@ -429,7 +430,7 @@ public class ClassicRenderer implements Renderer {
 		RenderType renderType = determineRenderType(r); 
 		
 		boolean isActive = false;
-		boolean isInverted = false;
+		Map<String, Boolean> booleansProp = new HashMap<String, Boolean>();
 		
 		// Just check activation if Node.
 		if(r instanceof Node){
@@ -442,8 +443,10 @@ public class ClassicRenderer implements Renderer {
 				}
 			}
 			
-			if(n instanceof LogicGate){
-				isInverted = ((LogicGate) n).isInverted();
+			for(String name : n.getProperties().keySet()){
+				if(n.getProperty(name) instanceof Boolean){
+					booleansProp.put(name, (Boolean) n.getProperty(name));
+				}
 			}
 		}
 		
@@ -491,7 +494,7 @@ public class ClassicRenderer implements Renderer {
 				
 				gtx.fill();
 				
-				if(!isInverted){
+				if(booleansProp.getOrDefault(LogicGate.INVERTED_PROP_NAME, false)){
 					gtx.setLineWidth(0.01);
 					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
@@ -512,7 +515,7 @@ public class ClassicRenderer implements Renderer {
 				
 				gtx.fill();
 				
-				if(isInverted){
+				if(booleansProp.getOrDefault(LogicGate.INVERTED_PROP_NAME, false)){
 					gtx.setLineWidth(0.01);
 					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
@@ -533,12 +536,12 @@ public class ClassicRenderer implements Renderer {
 				
 				gtx.fill();
 				
-				if(isInverted){
+				if(booleansProp.getOrDefault(LogicGate.INVERTED_PROP_NAME, false)){
 					gtx.setLineWidth(0.01);
 					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
-			}else if(renderType == RenderType.ON_LAMP_COMPONENT_NODE || renderType == RenderType.OFF_LAMP_COMPONENT_NODE){
-				if(renderType == RenderType.ON_LAMP_COMPONENT_NODE){
+			}else if(renderType == RenderType.LAMP_COMPONENT_NODE){
+				if(booleansProp.getOrDefault(LampComponent.ACTIVATED_PROP_NAME, false)){
 					gtx.setFill(LAMP_ON);
 					
 					gtx.setEffect(new GaussianBlur(1));
@@ -559,12 +562,12 @@ public class ClassicRenderer implements Renderer {
 					gtx.rotate(90);
 					gtx.strokeLine(-width/2, 0, width/2, 0);
 				gtx.restore();
-			}else if(renderType == RenderType.OPEN_SWITCH_COMPONENT || renderType == RenderType.CLOSE_SWITCH_COMPONENT){
+			}else if(renderType == RenderType.SWITCH_COMPONENT || renderType == RenderType.SWITCH_COMPONENT){
 				gtx.setFill(PASSIVE_NODE_FILL);
 				
 				gtx.save();
 					gtx.translate(-width/2, 0);
-					if(renderType == RenderType.OPEN_SWITCH_COMPONENT){
+					if(!booleansProp.getOrDefault(SwitchComponent.STATE_PROP_NAME, false)){
 						gtx.rotate(20);
 					}
 					
@@ -775,7 +778,7 @@ public class ClassicRenderer implements Renderer {
 		// Relative to the center
 		double x = -n.getWidth()/2;
 		double y = n.getHeight()/2 - n.getHeight() * percent;
-
+		
 		double ang = -90 * n.getOrientation();
 		
 		Affine rotation = new Affine();
@@ -855,25 +858,9 @@ public class ClassicRenderer implements Renderer {
 		}else if(c == OrLogicGate.class){
 			rt = RenderType.OR_LOGIC_GATE_NODE;
 		}else if(c == LampComponent.class){
-			if(r instanceof LampComponent){ // If the renderable IS a lamp
-				if(((LampComponent) r).isActivated()){
-					rt = RenderType.ON_LAMP_COMPONENT_NODE;
-				}else{
-					rt = RenderType.OFF_LAMP_COMPONENT_NODE;
-				}
-			}else{ // else, it's just a NodeItem of a lamp
-				rt = RenderType.OFF_LAMP_COMPONENT_NODE;
-			}
+			rt = RenderType.LAMP_COMPONENT_NODE;
 		}else if(c == SwitchComponent.class){
-			if(r instanceof SwitchComponent){
-				if(((SwitchComponent) r).getState()){
-					rt = RenderType.CLOSE_SWITCH_COMPONENT;
-				}else{
-					rt = RenderType.OPEN_SWITCH_COMPONENT;
-				}
-			}else{
-				rt = RenderType.OPEN_SWITCH_COMPONENT;
-			}
+			rt = RenderType.SWITCH_COMPONENT;
 		}else if(c == WireItem.class){
 			rt = RenderType.WIRE_ITEM;
 		}else if(c == ActionItem.class){

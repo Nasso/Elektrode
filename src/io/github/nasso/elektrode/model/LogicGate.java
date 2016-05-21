@@ -1,33 +1,37 @@
 package io.github.nasso.elektrode.model;
 
 public abstract class LogicGate extends Node implements BooleanListener {
-	private boolean inverted = false;
-	private int inputCount = 0;
-	
+	public static final String INPUT_COUNT_PROP_NAME = "inputCount", INVERTED_PROP_NAME = "inverted";
+
 	public LogicGate(int inputCount){
-		this.inputCount = inputCount;
-		
-		for(int i = 0; i < inputCount; i++){
-			this.addInput().addStateListener(this);
-		}
+		this.setInputCount(inputCount);
+		this.setInverted(false);
 		
 		this.addOutput();
 		
 		update();
 	}
 	
+	public LogicGate(){
+		this(2);
+	}
+	
 	public void onAction(){
-		inverted = !inverted;
+		toggleInversion();
+	}
+	
+	public boolean isInverted(){
+		return (boolean) this.getProperty(INVERTED_PROP_NAME);
+	}
+	
+	public void setInverted(boolean v){
+		this.setProperty(INVERTED_PROP_NAME, v);
 		
 		update();
 	}
 	
-	public boolean isInverted(){
-		return inverted;
-	}
-	
-	public void setInverted(boolean v){
-		this.inverted = v;
+	public void toggleInversion(){
+		setInverted(!isInverted());
 		
 		update();
 	}
@@ -36,16 +40,32 @@ public abstract class LogicGate extends Node implements BooleanListener {
 		update();
 	}
 	
-	private void update(){
-		boolean[] inputs = new boolean[inputCount];
+	public int getInputCount(){
+		return (int) getProperty(INPUT_COUNT_PROP_NAME);
+	}
+	
+	public void setInputCount(int count){
+		setProperty(INPUT_COUNT_PROP_NAME, count);
 		
-		for(int i = 0; i < inputCount; i++){
+		rearrangeInputs();
+	}
+	
+	private void rearrangeInputs(){
+		this.changeInputCount(getInputCount(), this);
+	}
+	
+	private void update(){
+		rearrangeInputs(); // rearrange if needed
+		
+		boolean[] inputs = new boolean[getInputCount()];
+		
+		for(int i = 0; i < getInputCount(); i++){
 			inputs[i] = getInputValue(i);
 		}
 		
 		boolean result = logicGate(inputs);
 		
-		if(inverted){
+		if(isInverted()){
 			result = !result;
 		}
 		

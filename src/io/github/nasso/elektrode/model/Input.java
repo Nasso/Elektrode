@@ -38,7 +38,8 @@ public class Input {
 	}
 	
 	public BooleanListener addStateListener(BooleanListener l){
-		this.stateListeners.add(l);
+		if(l != null)
+			this.stateListeners.add(l);
 		
 		return l;
 	}
