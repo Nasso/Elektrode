@@ -1,6 +1,7 @@
 package io.github.nasso.elektrode.data;
 
 import io.github.nasso.elektrode.model.Input;
+import io.github.nasso.elektrode.model.InventoryItem;
 import io.github.nasso.elektrode.model.Node;
 import io.github.nasso.elektrode.model.Output;
 import io.github.nasso.elektrode.model.World;
@@ -61,12 +62,51 @@ public class XMLWorldCodec extends WorldCodec {
 	public void encode(OutputStream out, World world) throws IOException {
 		Document dom = builder.newDocument();
 		Comment codecInfos = dom.createComment(" Generator: "+getClass().getSimpleName()+" ");
+		
 		Element root = dom.createElement("world");
 		root.appendChild(codecInfos);
 		
+		// Save viewport
+		Element viewportElem = dom.createElement("viewport");
+		viewportElem.setAttribute("scale", String.valueOf(world.getViewport().getScale()));
+		viewportElem.setAttribute("transX", String.valueOf(world.getViewport().getTranslateX()));
+		viewportElem.setAttribute("transY", String.valueOf(world.getViewport().getTranslateY()));
+
+		// Save inventory
+		Element inventoryElem = dom.createElement("inventory");
+		InventoryItem[] items = world.getInventory().getContent();
+		
+		inventoryElem.setAttribute("itemCount", String.valueOf(items.length));
+		
+		for(int i = 0; i < items.length; i++){
+			InventoryItem item = items[i];
+			
+			Element itemElem = dom.createElement("item");
+			itemElem.setAttribute("type", item.getClass().getCanonicalName());
+			itemElem.setAttribute("hid", String.valueOf(i));
+			
+			Element pe = dom.createElement("properties");
+			for(String pname : item.getProperties().keySet()){
+				Object prop = item.getProperty(pname);
+				
+				Element prope = dom.createElement("prop");
+				prope.setAttribute("name", pname);
+				prope.setAttribute("type", prop.getClass().getCanonicalName());
+				
+				if(isPrimitiveBinding(prop.getClass())){ // Writes it only if it is a primitive type (so I can parse it)
+					prope.setTextContent(prop.toString());
+				}
+				
+				pe.appendChild(prope);
+			}
+			itemElem.appendChild(pe);
+			
+			inventoryElem.appendChild(itemElem);
+		}
+		
+		// Save nodes
 		Element nodesRoot = dom.createElement("nodes");
 		nodesRoot.setAttribute("nodeCount", String.valueOf(world.getNodes().size()));
-		
 		List<Node> nodes = world.getNodes();
 		for(Node n : nodes){
 			Element nodeElem = dom.createElement("node");
@@ -123,6 +163,8 @@ public class XMLWorldCodec extends WorldCodec {
 			nodesRoot.appendChild(nodeElem);
 		}
 		
+		root.appendChild(viewportElem);
+		root.appendChild(inventoryElem);
 		root.appendChild(nodesRoot);
 		dom.appendChild(root);
 		
@@ -145,6 +187,80 @@ public class XMLWorldCodec extends WorldCodec {
 		if(dom == null) return new World();
 		
 		Element root = (Element) dom.getElementsByTagName("world").item(0);
+		
+		// Viewport
+		Element viewportElem = (Element) root.getElementsByTagName("viewport").item(0);
+		double scale = Double.parseDouble(viewportElem.getAttribute("scale"));
+		double transX = Double.parseDouble(viewportElem.getAttribute("transX"));
+		double transY = Double.parseDouble(viewportElem.getAttribute("transY"));
+		
+		// Inventory
+		Element inventoryElem = (Element) root.getElementsByTagName("inventory").item(0);
+		int itemCount = Integer.parseInt(inventoryElem.getAttribute("itemCount"));
+		
+		InventoryItem[] items = new InventoryItem[itemCount];
+		
+		NodeList itemNodes = inventoryElem.getElementsByTagName("item");
+		for(int i = 0; i < itemNodes.getLength(); i++){
+			Element itemElem = (Element) itemNodes.item(i);
+			
+			int hid = Integer.parseInt(itemElem.getAttribute("hid"));
+			
+			if(hid < 0 || hid >= items.length){
+				continue; // never trust external data
+			}
+			
+			String type = itemElem.getAttribute("type");
+			
+			InventoryItem item = null;
+			Class<?> classType = null;
+			try {
+				classType = Class.forName(type);
+				
+				if(InventoryItem.class.isAssignableFrom(classType)){
+					item = (InventoryItem) classType.newInstance();
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			
+			// Properties
+			Element propertiesElem = (Element) itemElem.getElementsByTagName("properties").item(0);
+			NodeList propsDOMNodes = propertiesElem.getElementsByTagName("prop");
+			for(int j = 0; j < propsDOMNodes.getLength(); j++){
+				Element propElem = (Element) propsDOMNodes.item(j);
+				String propClassName = propElem.getAttribute("type");
+				
+				Class<?> propClass = null;
+				
+				try {
+					propClass = Class.forName(propClassName);
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+				
+				if(propClass == null){
+					System.out.println("Skip unknown class: "+propClassName);
+					continue; // skip if invalid
+				}
+				
+				item.setProperty(
+					propElem.getAttribute("name"),
+					parsePrimitiveOrString(
+						propClass,
+						propElem.getTextContent()
+					)
+				);
+			}
+			
+			items[i] = item;
+		}
+		
+		// Nodes
 		Element nodesRoot = (Element) root.getElementsByTagName("nodes").item(0);
 		
 		int nodeCount = Integer.parseInt(nodesRoot.getAttribute("nodeCount"));
@@ -293,6 +409,14 @@ public class XMLWorldCodec extends WorldCodec {
 			w.getNodes().add(n);
 		}
 		
+		// Add all items
+		w.getInventory().addAllItems(items);
+		
+		// Set the viewport
+		w.getViewport().setScale(scale);
+		w.getViewport().setTranslateX(transX);
+		w.getViewport().setTranslateY(transY);
+		
 		// Returns the world :D
 		return w;
 	}
@@ -322,7 +446,8 @@ public class XMLWorldCodec extends WorldCodec {
 				Integer.class,
 				Long.class,
 				Float.class,
-				Double.class
+				Double.class,
+				String.class
 		};
 		
 		for(Class<?> pc : primitiveClasses){

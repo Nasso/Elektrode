@@ -19,7 +19,6 @@ import io.github.nasso.elektrode.model.WireItem;
 import io.github.nasso.elektrode.model.World;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javafx.geometry.Point2D;
@@ -96,33 +95,31 @@ public class ClassicRenderer implements Renderer {
 	private Inventory inventory = null;
 	private Output originWireOutput = null;
 	private Point2D mousePos = null;
-	private List<Node> nodes = null;
+	private World world = null;
 	// private double delta = 0;
 	private long nowms = 0;
 	
 	public void render(
 			Canvas cvs,
-			Viewport v,
-			Inventory inventory,
 			Output originWireOutput,
 			Point2D mousePos,
-			World world,
+			World w,
 			double delta,
 			long nowms) {
 		this.cvs = cvs;
-		this.scale = v.getScale();
-		this.translateX = v.getTranslateX();
-		this.translateY = v.getTranslateY();
-		this.inventory = inventory;
+		this.world = w;
+		this.scale = world.getViewport().getScale();
+		this.translateX = world.getViewport().getTranslateX();
+		this.translateY = world.getViewport().getTranslateY();
+		this.inventory = world.getInventory();
 		this.originWireOutput = originWireOutput;
 		this.mousePos = mousePos;
-		this.nodes = world.getNodes();
 		// this.delta = delta;
 		this.nowms = nowms;
 		
-		double scale = v.getScale();
-		double translateX = v.getTranslateX();
-		double translateY = v.getTranslateY();
+		double scale = world.getViewport().getScale();
+		double translateX = world.getViewport().getTranslateX();
+		double translateY = world.getViewport().getTranslateY();
 		
 		GraphicsContext gtx = cvs.getGraphicsContext2D();
 		
@@ -167,7 +164,7 @@ public class ClassicRenderer implements Renderer {
 		
 		gtx.save();
 			gtx.setLineWidth(2 / scale);
-			for(Node n : nodes){
+			for(Node n : world.getNodes()){
 				// Draw inputs
 				Input[] ins = n.getInputs();
 				for(int i = 0; i < ins.length; i++){
@@ -281,7 +278,7 @@ public class ClassicRenderer implements Renderer {
 	
 	private void renderNodes(){
 		// Draw components
-		for(Node n : nodes){
+		for(Node n : world.getNodes()){
 			renderRenderableInWorld(n);
 		}
 	}
@@ -292,7 +289,7 @@ public class ClassicRenderer implements Renderer {
 		gtx.save();
 			gtx.setLineWidth(0.05);
 			
-			for(Node n : nodes){
+			for(Node n : world.getNodes()){
 				gtx.save();
 					Output[] outs = n.getOutputs();
 					for(int i = 0; i < outs.length; i++){
@@ -829,7 +826,7 @@ public class ClassicRenderer implements Renderer {
  		int cx = sceneToWorldXCase(sceneX);
 		int cy = sceneToWorldYCase(sceneY);
 		
-		for(Node n : nodes){
+		for(Node n : world.getNodes()){
 			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
 				return n;
 			}
@@ -842,7 +839,7 @@ public class ClassicRenderer implements Renderer {
 		Class<? extends Renderable> c = null;
 		
 		if(r instanceof NodeItem){
-			c = ((NodeItem) r).getSource();
+			c = ((NodeItem) r).getSource().get();
 		}else{
 			c = r.getClass();
 		}

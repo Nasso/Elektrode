@@ -1,6 +1,6 @@
 package io.github.nasso.elektrode.model;
 
-public class ActionItem implements InventoryItem {
+public class ActionItem extends InventoryItem {
 	public double getX() {
 		return 0;
 	}

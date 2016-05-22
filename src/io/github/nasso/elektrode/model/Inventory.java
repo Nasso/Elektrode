@@ -8,14 +8,8 @@ public class Inventory {
 	private int selectedInventorySlot = 0;
 	private List<InventoryItem> items = new ArrayList<InventoryItem>();
 	
-	public Inventory(){
-		
-	}
-	
-	public Inventory(InventoryItem[] initItems){
-		for(InventoryItem i : initItems){
-			this.items.add(i);
-		}
+	public Inventory(InventoryItem... items){
+		addAllItems(items);
 	}
 	
 	public Inventory(Collection<InventoryItem> initItems){
@@ -67,6 +61,12 @@ public class Inventory {
 	
 	public void addItem(InventoryItem item){
 		this.items.add(item);
+	}
+	
+	public void addAllItems(InventoryItem... items){
+		for(InventoryItem i : items){
+			addItem(i);
+		}
 	}
 	
 	public void addItem(int index, InventoryItem item){

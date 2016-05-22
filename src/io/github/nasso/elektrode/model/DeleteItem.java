@@ -1,6 +1,6 @@
 package io.github.nasso.elektrode.model;
 
-public class DeleteItem implements InventoryItem {
+public class DeleteItem extends InventoryItem {
 	public double getX() {
 		return 0;
 	}

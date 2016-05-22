@@ -1,27 +1,33 @@
 package io.github.nasso.elektrode.model;
 
+import java.util.Optional;
 
-public class NodeItem implements InventoryItem {
-	private Class<? extends Node> source;
-	
-	private String displayName = "missingno";
+
+public class NodeItem extends InventoryItem {
+	public NodeItem(){
+		
+	}
 	
 	public NodeItem(Class<? extends Node> sourceClass){
 		this(sourceClass, sourceClass.getSimpleName());
 	}
 	
 	public NodeItem(Class<? extends Node> sourceClass, String displayName){
-		this.source = sourceClass;
-		this.displayName = displayName;
+		this.setSource(sourceClass);
+		this.setDisplayName(displayName);
 	}
 	
 	public Node createNodeFromSource(){
-		if(source == null){
+		Optional<Class<? extends Node>> oc = getSource();
+		
+		if(!oc.isPresent()){
 			return null;
 		}
 		
 		try {
-			return source.newInstance();
+			if(oc.isPresent()){
+				return oc.get().newInstance();
+			}
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
@@ -31,12 +37,22 @@ public class NodeItem implements InventoryItem {
 		return null; // Return null if sad
 	}
 
-	public Class<? extends Node> getSource() {
-		return source;
+	@SuppressWarnings("unchecked")
+	public Optional<Class<? extends Node>> getSource() {
+		Optional<Class<? extends Node>> oc = Optional.empty();
+		
+		try {
+			// oc = new Optional<Class<? extends Node>>((Class<? extends Node>) Class.forName((String) getProperty("sourceClass")));
+			oc = Optional.of((Class<? extends Node>) Class.forName((String) getProperty("sourceClass")));
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		return oc;
 	}
 
 	public void setSource(Class<? extends Node> source) {
-		this.source = source;
+		setProperty("sourceClass", source.getCanonicalName());
 	}
 	
 	// Unused method for inventory item
@@ -61,6 +77,10 @@ public class NodeItem implements InventoryItem {
 	}
 	
 	public String getDisplayName() {
-		return displayName;
+		return (String) getProperty("displayName");
+	}
+	
+	public void setDisplayName(String name){
+		setProperty("displayName", name);
 	}
 }

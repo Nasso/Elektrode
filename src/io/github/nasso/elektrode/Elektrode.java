@@ -8,7 +8,6 @@ import io.github.nasso.elektrode.model.DelayNode;
 import io.github.nasso.elektrode.model.DeleteItem;
 import io.github.nasso.elektrode.model.Generator;
 import io.github.nasso.elektrode.model.Input;
-import io.github.nasso.elektrode.model.Inventory;
 import io.github.nasso.elektrode.model.InventoryItem;
 import io.github.nasso.elektrode.model.LampComponent;
 import io.github.nasso.elektrode.model.NoLogicGate;
@@ -21,7 +20,6 @@ import io.github.nasso.elektrode.model.WireItem;
 import io.github.nasso.elektrode.model.World;
 import io.github.nasso.elektrode.view.ClassicRenderer;
 import io.github.nasso.elektrode.view.Renderer;
-import io.github.nasso.elektrode.view.Viewport;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +28,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -42,6 +41,9 @@ import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -86,11 +88,13 @@ public class Elektrode extends Application {
 	
 	private Canvas cvs = null;
 	private MenuBar menuBar = null;
+	private String newShortcut = "Ctrl+N";
 	private String saveShortcut = "Ctrl+S";
 	private String saveAsShortcut = "Ctrl+Shift+S";
 	private String loadShortcut = "Ctrl+O";
+	private boolean isSaved = true;
+	private Alert confirmAlert = null;
 	
-	private Viewport viewport = new Viewport(50);
 	private double lastX = -1;
 	private double lastY = -1;
 	
@@ -100,11 +104,12 @@ public class Elektrode extends Application {
 	private Path openedPath = null;
 	private FileChooser fileChooser = null;
 	
-	private Inventory inventory = new Inventory();
 	private Output originWireOut = null;
 	private Point2D mousePos = new Point2D(0, 0);
 	
 	private Scene createScene(Stage stg){
+		confirmAlert = new Alert(AlertType.CONFIRMATION, "", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+		
 		fileChooser = new FileChooser();
 		fileChooser.setTitle("Choose a file");
 		fileChooser.getExtensionFilters().add(new ExtensionFilter("Elektrode World File", "*.ewf"));
@@ -118,16 +123,16 @@ public class Elektrode extends Application {
 		sce.setOnScroll(new EventHandler<ScrollEvent>() {
 			public void handle(ScrollEvent event) {
 				if(event.isControlDown()){
-					double scale = viewport.getScale();
+					double scale = world.getViewport().getScale();
 					
 					scale += event.getDeltaY() / 10;
 					
 					scale = Math.min(scale, 200);
 					scale = Math.max(10, scale);
 					
-					viewport.setScale(scale);
+					world.getViewport().setScale(scale);
 				}else{
-					inventory.moveSelectedSlot((int) -Math.signum(event.getDeltaY()));
+					world.getInventory().moveSelectedSlot((int) -Math.signum(event.getDeltaY()));
 				}
 			}
 		});
@@ -138,7 +143,7 @@ public class Elektrode extends Application {
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
 				}else if(event.getButton() == MouseButton.SECONDARY){
-					InventoryItem item = inventory.getSelectedItem();
+					InventoryItem item = world.getInventory().getSelectedItem();
 					
 					if(item instanceof NodeItem){
 						Node clone = ((NodeItem) item).createNodeFromSource();
@@ -242,7 +247,9 @@ public class Elektrode extends Application {
 		sce.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
 				if(event.getButton() == MouseButton.PRIMARY){
-					viewport.translate((event.getSceneX() - lastX) / viewport.getScale(), -(event.getSceneY() - lastY) / viewport.getScale());
+					world.getViewport().translate(
+							(event.getSceneX() - lastX) / world.getViewport().getScale(),
+							-(event.getSceneY() - lastY) / world.getViewport().getScale());
 					
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
@@ -272,10 +279,11 @@ public class Elektrode extends Application {
 		
 		// Menubar
 		Menu fileMenu = new Menu("File");
+		MenuItem newItem = new MenuItem("New");
 		MenuItem saveItem = new MenuItem("Save");
 		MenuItem saveAsItem = new MenuItem("Save as");
 		MenuItem loadItem = new MenuItem("Open");
-		fileMenu.getItems().addAll(saveItem, saveAsItem, loadItem);
+		fileMenu.getItems().addAll(newItem, saveItem, saveAsItem, loadItem);
 		menuBar.getMenus().addAll(fileMenu);
 		
 		double offOpacity = 1; // Useless to 1 but if you want you can change it, transition are ready :D
@@ -344,31 +352,24 @@ public class Elektrode extends Application {
 			)
 		);
 		
+		newItem.setAccelerator(KeyCombination.keyCombination(newShortcut));
 		saveItem.setAccelerator(KeyCombination.keyCombination(saveShortcut));
 		saveAsItem.setAccelerator(KeyCombination.keyCombination(saveAsShortcut));
 		loadItem.setAccelerator(KeyCombination.keyCombination(loadShortcut));
 		
+		newItem.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent event) {
+				newWorld();
+			}
+		});
 		saveItem.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent event) {
-				if(openedPath != null){
-					saveToFile(openedPath);
-				}else{
-					saveAsItem.fire();
-				}
+				save();
 			}
 		});
 		saveAsItem.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent event) {
-				File f = fileChooser.showSaveDialog(stg);
-				
-				if(f == null){
-					return;
-				}
-				
-				Path path = f.toPath();
-				
-				saveToFile(path);
-				setOpenedPath(path);
+				saveAs();
 			}
 		});
 		loadItem.setOnAction(new EventHandler<ActionEvent>(){
@@ -389,6 +390,22 @@ public class Elektrode extends Application {
 		return sce;
 	}
  	
+	private boolean saveCheck(){
+		// Returns true if the user didn't cancel
+		if(isSaved){
+			confirmAlert.setHeaderText("Save changes to " + getOpenedName() + "?");
+			Optional<ButtonType> btn = confirmAlert.showAndWait();
+			
+			btn.filter(r -> (r == ButtonType.OK)).ifPresent(r -> save());
+			
+			if(btn.filter(r -> (r == ButtonType.CANCEL)).isPresent()){
+				return false; // Return false if canceled
+			}
+		}
+		
+		return true;
+	}
+	
 	private void setOpenedPath(Path p){
 		openedPath = p;
 		// I thought I had to do something there but nope.
@@ -397,6 +414,33 @@ public class Elektrode extends Application {
 	}
 	
  	// Actions
+	public void newWorld(){
+		if(saveCheck()){
+			initElogic();
+		}
+	}
+	
+	public void save(){
+		if(openedPath != null){
+			saveToFile(openedPath);
+		}else{
+			saveAs();
+		}
+	}
+	
+	public void saveAs(){
+		File f = fileChooser.showSaveDialog(stg);
+		
+		if(f == null){
+			return;
+		}
+		
+		Path path = f.toPath();
+		
+		saveToFile(path);
+		setOpenedPath(path);
+	}
+	
  	public void save(OutputStream str) throws IOException{
  		codec.encode(str, world);
  	}
@@ -538,38 +582,56 @@ public class Elektrode extends Application {
 	}
 	
 	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / viewport.getScale() - viewport.getTranslateX();
+		double wx = (x - cvs.getWidth()/2) / world.getViewport().getScale() - world.getViewport().getTranslateX();
 		
 		return wx;
 	}
 	
 	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / viewport.getScale() - viewport.getTranslateY();
+		double wy = (y - cvs.getHeight()/2) / world.getViewport().getScale() - world.getViewport().getTranslateY();
 		
 		return wy;
 	}
 	
-	private void initElogic(){
-		// TODO: Inventory
-		inventory.addItem(new WireItem());
-		inventory.addItem(new ActionItem());
-		inventory.addItem(new DeleteItem());
+	private void initElogic(Path open){
+		if(open != null){
+			loadFromFile(open);
+		}else{
+			world = new World();
+		}
 		
-		inventory.addItem(new NodeItem(Generator.class, 		"Generator"));
-		inventory.addItem(new NodeItem(NoLogicGate.class, 		"No logic gate"));
-		inventory.addItem(new NodeItem(AndLogicGate.class, 		"And logic gate"));
-		inventory.addItem(new NodeItem(OrLogicGate.class, 		"Or logic gate"));
-		inventory.addItem(new NodeItem(LampComponent.class, 	"Lamp"));
-		inventory.addItem(new NodeItem(SwitchComponent.class, 	"Switch"));
-		inventory.addItem(new NodeItem(DelayNode.class, 		"Delay node"));
+		originWireOut = null;
+		
+		world.getInventory().addAllItems(
+				new WireItem(),
+				new ActionItem(),
+				new DeleteItem(),
+				
+				new NodeItem(Generator.class, "Generator"),
+				new NodeItem(NoLogicGate.class, "No logic gate"),
+				new NodeItem(AndLogicGate.class, "And logic gate"),
+				new NodeItem(OrLogicGate.class, "Or logic gate"),
+				new NodeItem(LampComponent.class, "Lamp"),
+				new NodeItem(SwitchComponent.class, "Switch"),
+				new NodeItem(DelayNode.class, "Delay node"));
+	}
+	
+	private void initElogic(){
+		initElogic(null);
+	}
+	
+	private String getOpenedName(){
+		String name = "Untitled";
+		
+		if(openedPath != null){
+			name = openedPath.getFileName().toString();
+		}
+		
+		return name;
 	}
 	
 	private void updateStageTitle(){
-		if(openedPath != null){
-			stg.setTitle("Elogic - "+openedPath.getFileName()+" - "+Elektrode.this.fps+"FPS");
-		}else{
-			stg.setTitle("Elogic - "+Elektrode.this.fps+"FPS");
-		}
+		stg.setTitle("Elogic - "+getOpenedName()+" - "+Elektrode.this.fps+"FPS");
 	}
 	
 	private void loopUpdate(double delta, long nowms){
@@ -582,7 +644,7 @@ public class Elektrode extends Application {
 			lastFPSUpdate = nowms;
 		}
 		
-		renderer.render(cvs, viewport, inventory, originWireOut, mousePos, world, delta, nowms);
+		renderer.render(cvs, originWireOut, mousePos, world, delta, nowms);
 	}
 	
 	public static void main(String[] args) {
