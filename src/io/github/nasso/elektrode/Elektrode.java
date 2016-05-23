@@ -27,7 +27,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Optional;
 
 import javafx.animation.Animation;
@@ -139,6 +141,8 @@ public class Elektrode extends Application {
 		
 		sce.setOnMousePressed(new EventHandler<MouseEvent>(){
 			public void handle(MouseEvent event) {
+				boolean saveStateBefore = isSaved;
+				
 			 	if(event.getButton() == MouseButton.PRIMARY){
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
@@ -182,6 +186,7 @@ public class Elektrode extends Application {
 						clone.setY(cy);
 						
 						world.getNodes().add(clone);
+						isSaved = false;
 					}else if(item instanceof WireItem){
 						double sx = event.getSceneX();
 						double sy = event.getSceneY();
@@ -197,9 +202,11 @@ public class Elektrode extends Application {
 								if(in.getOrigin() != null){ // take the wire
 									originWireOut = in.getOrigin();
 									originWireOut.removeDestination(in); // remove the old
+									isSaved = false;
 								}else if(originWireOut != null){ // relies the wire if there is one
 									if(in.getOwner() != originWireOut.getOwner()){
 										originWireOut.addDestination(in);
+										isSaved = false;
 										
 										originWireOut = null;
 									}
@@ -214,6 +221,7 @@ public class Elektrode extends Application {
 						
 						if(n != null){
 							n.onAction();
+							isSaved = false;
 						}
 					}else if(item instanceof DeleteItem){
 						double sx = event.getSceneX();
@@ -225,6 +233,7 @@ public class Elektrode extends Application {
 							n.clearInputs();
 							n.clearOutputs();
 							world.getNodes().remove(n);
+							isSaved = false;
 						}
 					}
 				}else if(event.getButton() == MouseButton.MIDDLE){
@@ -239,8 +248,13 @@ public class Elektrode extends Application {
 					
 					if(n != null){
 						n.turnRight();
+						isSaved = false;
 					}
 				}
+			 	
+			 	if(saveStateBefore != isSaved){ // If changes
+			 		updateStageTitle();
+			 	}
 			}
 		});
 		
@@ -392,7 +406,7 @@ public class Elektrode extends Application {
  	
 	private boolean saveCheck(){
 		// Returns true if the user didn't cancel
-		if(isSaved){
+		if(!isSaved){
 			confirmAlert.setHeaderText("Save changes to " + getOpenedName() + "?");
 			Optional<ButtonType> btn = confirmAlert.showAndWait();
 			
@@ -426,6 +440,9 @@ public class Elektrode extends Application {
 		}else{
 			saveAs();
 		}
+		
+		isSaved = true;
+		updateStageTitle();
 	}
 	
 	public void saveAs(){
@@ -578,7 +595,16 @@ public class Elektrode extends Application {
 		
 		timer.start();
 		
-		initElogic();
+		List<String> args = this.getParameters().getUnnamed(); 
+		if(!args.isEmpty()){
+			Path arg = Paths.get(args.get(0));
+			
+			if(Files.exists(arg)){
+				initElogic(arg);
+			}else{
+				initElogic();
+			}
+		}
 	}
 	
 	private double sceneToWorldX(double x){
@@ -596,6 +622,7 @@ public class Elektrode extends Application {
 	private void initElogic(Path open){
 		if(open != null){
 			loadFromFile(open);
+			openedPath = open;
 		}else{
 			world = new World();
 		}
@@ -631,7 +658,7 @@ public class Elektrode extends Application {
 	}
 	
 	private void updateStageTitle(){
-		stg.setTitle("Elogic - "+getOpenedName()+" - "+Elektrode.this.fps+"FPS");
+		stg.setTitle("Elogic - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
 	}
 	
 	private void loopUpdate(double delta, long nowms){

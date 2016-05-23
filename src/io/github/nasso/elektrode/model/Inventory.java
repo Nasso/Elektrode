@@ -16,11 +16,11 @@ public class Inventory {
 		this.items.addAll(initItems);
 	}
 	
-	public int getSelectedInventorySlot() {
+	public int getSelectedSlot() {
 		return selectedInventorySlot;
 	}
 	
-	public void setSelectedInventorySlot(int selectedInventorySlot) {
+	public void setSelectedSlot(int selectedInventorySlot) {
 		this.selectedInventorySlot = selectedInventorySlot;
 
 		// And there

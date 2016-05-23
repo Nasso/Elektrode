@@ -77,6 +77,7 @@ public class XMLWorldCodec extends WorldCodec {
 		InventoryItem[] items = world.getInventory().getContent();
 		
 		inventoryElem.setAttribute("itemCount", String.valueOf(items.length));
+		inventoryElem.setAttribute("selected", String.valueOf(world.getInventory().getSelectedSlot()));
 		
 		for(int i = 0; i < items.length; i++){
 			InventoryItem item = items[i];
@@ -197,6 +198,7 @@ public class XMLWorldCodec extends WorldCodec {
 		// Inventory
 		Element inventoryElem = (Element) root.getElementsByTagName("inventory").item(0);
 		int itemCount = Integer.parseInt(inventoryElem.getAttribute("itemCount"));
+		int selectedSlot = Integer.parseInt(inventoryElem.getAttribute("selected"));
 		
 		InventoryItem[] items = new InventoryItem[itemCount];
 		
@@ -411,6 +413,7 @@ public class XMLWorldCodec extends WorldCodec {
 		
 		// Add all items
 		w.getInventory().addAllItems(items);
+		w.getInventory().setSelectedSlot(selectedSlot);
 		
 		// Set the viewport
 		w.getViewport().setScale(scale);

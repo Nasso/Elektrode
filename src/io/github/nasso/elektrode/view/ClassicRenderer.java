@@ -221,31 +221,36 @@ public class ClassicRenderer implements Renderer {
 			gtx.setEffect(new GaussianBlur(0.8));
 			
 			gtx.setGlobalAlpha(1.0);
-			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100, 1, 1, 1);
+			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100, 1, 1.2, 1);
 			
 			gtx.setGlobalAlpha(0.3);
 			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 + 1.2, 0.8, 1, 1);
 			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 - 1.2, 0.8, 1, 1);
 			
-			gtx.setGlobalAlpha(0.1);
+			gtx.setGlobalAlpha(0.2);
 			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 + 2.4, 0.8, 1, 1);
 			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 - 2.4, 0.8, 1, 1);
+			
+			gtx.setGlobalAlpha(0.1);
+			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 + 3.6, 0.8, 1, 1);
+			renderSquareAt(Color.BLACK, 50, cvs.getWidth()/100 - 3.6, 0.8, 1, 1);
 			
 			gtx.setEffect(null);
 			
 			gtx.setGlobalAlpha(1.0);
-			renderRenderableAt(inventory.getItemFromSelected(0), cvs.getWidth()/100, 1, 50);
+			renderRenderableAt(inventory.getItemFromSelected(0), cvs.getWidth()/100, 1.2, 50);
 			
 			gtx.setGlobalAlpha(0.4);
 			renderRenderableAt(inventory.getItemFromSelected(1), cvs.getWidth()/100 + 1.2, 0.8, 50);
-			
 			renderRenderableAt(inventory.getItemFromSelected(-1), cvs.getWidth()/100 - 1.2, 0.8, 50);
 			
-			gtx.setGlobalAlpha(0.1);
-			
+			gtx.setGlobalAlpha(0.2);
 			renderRenderableAt(inventory.getItemFromSelected(2), cvs.getWidth()/100 + 2.4, 0.8, 50);
-			
 			renderRenderableAt(inventory.getItemFromSelected(-2), cvs.getWidth()/100 - 2.4, 0.8, 50);
+			
+			gtx.setGlobalAlpha(0.1);
+			renderRenderableAt(inventory.getItemFromSelected(3), cvs.getWidth()/100 + 3.6, 0.8, 50);
+			renderRenderableAt(inventory.getItemFromSelected(-3), cvs.getWidth()/100 - 3.6, 0.8, 50);
 		gtx.restore();
 		
 		// Item name
@@ -262,7 +267,7 @@ public class ClassicRenderer implements Renderer {
 			
 			gtx.setFill(HUD_BACK);
 			
-			gtx.fillRect(cvs.getWidth()/2 - tw/2 - hMargin, cvs.getHeight()-100 - HUD_FONT.getSize()/2 - vMargin, tw + hMargin*2, HUD_FONT.getSize() + vMargin*2);
+			gtx.fillRect(cvs.getWidth()/2 - tw/2 - hMargin, cvs.getHeight()-110 - HUD_FONT.getSize()/2 - vMargin, tw + hMargin*2, HUD_FONT.getSize() + vMargin*2);
 			
 			// END_BACKGROUND
 			
@@ -272,7 +277,7 @@ public class ClassicRenderer implements Renderer {
 			gtx.setTextAlign(TextAlignment.CENTER);
 			gtx.setTextBaseline(VPos.CENTER);
 			
-			gtx.fillText(displayName, cvs.getWidth()/2, cvs.getHeight() - 100);
+			gtx.fillText(displayName, cvs.getWidth()/2, cvs.getHeight() - 110);
 		gtx.restore();
 	}
 	
@@ -491,7 +496,7 @@ public class ClassicRenderer implements Renderer {
 				
 				gtx.fill();
 				
-				if(booleansProp.getOrDefault(LogicGate.INVERTED_PROP_NAME, false)){
+				if(booleansProp.getOrDefault(LogicGate.INVERTED_PROP_NAME, true)){
 					gtx.setLineWidth(0.01);
 					gtx.strokeOval(width/4, -0.05, 0.1, 0.1);
 				}
