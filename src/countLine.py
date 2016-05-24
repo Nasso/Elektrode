@@ -1,15 +1,27 @@
 # imports
 import os
 
-# funcs
+# vars
+logfilename = 'countLine0.log'
 
+namestried = 1
+while(os.path.exists(logfilename)):
+	logfilename = 'countLine' + str(namestried) + '.log'
+
+logfile = open(logfilename, 'w+')
+
+# funcs
+def log(what):
+	logfile.write(what + "\n")
+	print(what)
+	
 # gets all the files in the specified dir
 def getFiles(d):
 	files = []
 	for f in os.listdir(d):
 		fpf = os.path.join(d, f)
 		if os.path.isfile(fpf):
-			print("Found "+fpf+"...")
+			log("Found "+fpf+"...")
 			files.append(fpf)
 	return files
 	
@@ -25,6 +37,8 @@ def searchForFiles(d):
 
 # count the lines in f
 def countLines(fname):
+	i = 0
+	
 	with open(fname) as f:
 		for i, l in enumerate(f):
 			pass
@@ -32,17 +46,19 @@ def countLines(fname):
 
 # main
 cwd = os.getcwd()
-print("Counting all lines of all files in: "+cwd)
+log("Counting lines of all files in: "+cwd)
 
-print("Searching files...")
+log("Searching for files...")
 allFiles = searchForFiles(cwd)
 
-print("\nTerminated, reading files...")
+log("\nTerminated, reading files...")
 
 totalLineCount = 0
 for f in allFiles:
 	lc = countLines(f)
-	print("Found "+str(lc)+" lines in: "+str(f))
+	log("Found "+str(lc)+" lines in: "+str(f))
 	totalLineCount += lc
 
-print("\nCounting finished: "+str(totalLineCount)+" lines found.")
+log("\nCounting finished: "+str(totalLineCount)+" lines found.")
+
+logfile.close()
