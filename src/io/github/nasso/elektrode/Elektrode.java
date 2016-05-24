@@ -612,7 +612,7 @@ public class Elektrode extends Application {
 	}
 	
 	private void updateStageTitle(){
-		stg.setTitle("Elogic - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
+		stg.setTitle("Elektrode - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
 	}
 	
 	private void loopUpdate(double delta, long nowms){

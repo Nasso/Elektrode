@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <world>
     <!-- Generator: XMLWorldCodec -->
-    <viewport scale="43.5" transX="-5.851076364208332" transY="3.96304156686598"/>
-    <inventory itemCount="66" selected="44">
+    <viewport scale="43.5" transX="-6.839582111334768" transY="3.342351911693565"/>
+    <inventory itemCount="66" selected="45">
         <item hid="0" type="io.github.nasso.elektrode.model.WireItem">
             <properties/>
         </item>
