@@ -49,4 +49,21 @@ public class Viewport {
 	public void setTranslateY(double translateY) {
 		this.translateY = translateY;
 	}
+	
+	// Utilities
+	public double untransformX(double x){
+		return x / scale - translateX;
+	}
+	
+	public double untransformY(double y){
+		return y / scale - translateY;
+	}
+	
+	public double transformX(double x){
+		return x * scale + translateX;
+	}
+	
+	public double transformY(double y){
+		return y * scale + translateY;
+	}
 }

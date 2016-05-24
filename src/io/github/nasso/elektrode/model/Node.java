@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.geometry.Point2D;
+import javafx.scene.transform.Affine;
+
 public abstract class Node implements Renderable, Cloneable {
 	private List<Input> inputs = new ArrayList<Input>();
 	private List<Output> outputs = new ArrayList<Output>();
@@ -29,6 +32,37 @@ public abstract class Node implements Renderable, Cloneable {
 	public abstract void onAction();
 	
 	// Utilities
+ 	public Point2D getInputPos(int in){
+		double percent = (in + 0.5) / (double) this.getInputs().length;
+		
+		// Relative to the center
+		double x = -this.getWidth()/2;
+		double y = this.getHeight()/2 - this.getHeight() * percent;
+
+		double ang = -90 * this.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+		
+		return rotation.transform(x, y);
+	}
+	
+ 	public Point2D getOutputPos(int out){
+		double percent = (out + 0.5) / (double) this.getOutputs().length;
+		
+		// Relative to the center
+		double x = this.getWidth()/2;
+		double y = this.getHeight()/2 - this.getHeight() * percent;
+
+		double ang = -90 * this.getOrientation();
+		
+		Affine rotation = new Affine();
+		rotation.appendRotation(ang);
+
+		// - 0.05 on x just for swag, no calc errors, i promise (to myself)
+		return rotation.transform(x - 0.05, y);
+	}
+	
 	public void connectTo(Node n, int out, int in){
 		this.getOutput(out).addDestination(n.getInput(in));
 	}

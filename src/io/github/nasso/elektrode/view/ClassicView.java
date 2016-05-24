@@ -9,6 +9,7 @@ import io.github.nasso.elektrode.model.Input;
 import io.github.nasso.elektrode.model.Inventory;
 import io.github.nasso.elektrode.model.LampComponent;
 import io.github.nasso.elektrode.model.LogicGate;
+import io.github.nasso.elektrode.model.MoveItem;
 import io.github.nasso.elektrode.model.NoLogicGate;
 import io.github.nasso.elektrode.model.Node;
 import io.github.nasso.elektrode.model.NodeItem;
@@ -32,13 +33,15 @@ import javafx.scene.paint.Paint;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.ArcType;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Affine;
 
 import com.sun.javafx.tk.Toolkit;
 
-public class ClassicRenderer implements Renderer {
+public class ClassicView extends View {
 	/*
 	
 	How to add a component renderer:
@@ -87,6 +90,7 @@ public class ClassicRenderer implements Renderer {
 		ITEM,
 		WIRE_ITEM,
 		ACTION_ITEM,
+		MOVE_ITEM,
 		DELETE_ITEM
 	};
 	
@@ -99,7 +103,7 @@ public class ClassicRenderer implements Renderer {
 	// private double delta = 0;
 	private long nowms = 0;
 	
-	public void render(
+	public void renderWorld(
 			Canvas cvs,
 			Output originWireOutput,
 			Point2D mousePos,
@@ -168,7 +172,7 @@ public class ClassicRenderer implements Renderer {
 				// Draw inputs
 				Input[] ins = n.getInputs();
 				for(int i = 0; i < ins.length; i++){
-					Point2D ip = getInputPos(n, i);
+					Point2D ip = n.getInputPos(i);
 					
 					gtx.save();
 	 					gtx.translate(n.getX() + ip.getX(), n.getY() + ip.getY());
@@ -189,7 +193,7 @@ public class ClassicRenderer implements Renderer {
 				// Draw outputs
 				Output[] outs = n.getOutputs();
 				for(int i = 0; i < outs.length; i++){
-					Point2D op = getOutputPos(n, i);
+					Point2D op = n.getOutputPos(i);
 					
 					gtx.save();
 	 					gtx.translate(n.getX() + op.getX(), n.getY() + op.getY());
@@ -300,7 +304,7 @@ public class ClassicRenderer implements Renderer {
 					for(int i = 0; i < outs.length; i++){
 						Output out = outs[i];
 						
-						Point2D outp = getOutputPos(n, i);
+						Point2D outp = n.getOutputPos(i);
 						
 						gtx.setStroke(DISABLED_WIRE);
 						
@@ -309,7 +313,7 @@ public class ClassicRenderer implements Renderer {
 							
 							Node destOwner = dest.getOwner();
 							
-							Point2D dip = getInputPos(destOwner, dest.getOwnerIndex());
+							Point2D dip = destOwner.getInputPos(dest.getOwnerIndex());
 							dip = new Point2D(dip.getX(), dip.getY());
 							
 							gtx.strokeLine(
@@ -351,10 +355,10 @@ public class ClassicRenderer implements Renderer {
 						
 						// Then render to the mouse if it is the origin wire
 						if(out == originWireOutput){
-							double mx = sceneToWorldX(mousePos.getX());
-							double my = sceneToWorldY(mousePos.getY());
+							double mx = world.toWorldX(mousePos.getX());
+							double my = world.toWorldY(mousePos.getY());
 							
-							Point2D op = getOutputPos(n, out.getOwnerIndex());
+							Point2D op = n.getOutputPos(out.getOwnerIndex());
 							
 							gtx.setStroke(DISABLED_WIRE);
 							
@@ -676,6 +680,38 @@ public class ClassicRenderer implements Renderer {
 					gtx.arc(0, 0, radius, radius, 0, -360);
 					gtx.fill();
 				gtx.closePath();
+			}else if(renderType == RenderType.MOVE_ITEM){
+				// Render like a wire portion
+				
+				gtx.setStroke(PASSIVE_NODE_STROKE);
+				gtx.fillRect(-width/2, -height/2, width, height);
+				gtx.strokeRect(-width/2, -height/2, width, height);
+				
+				gtx.setStroke(TOOL_ITEM_PRIMARY);
+				gtx.setLineWidth(0.05);
+				
+				gtx.setLineCap(StrokeLineCap.ROUND);
+				gtx.setLineJoin(StrokeLineJoin.ROUND);
+				
+				gtx.beginPath();
+					gtx.moveTo(-width/4, 0);
+					gtx.lineTo(width/4, 0);
+					
+					gtx.moveTo(0, height/4);
+					gtx.lineTo(0, -height/4);
+					
+					// Yeap, i'm really lazy
+					for(int i = 0; i < 4; i++){
+						gtx.save();
+							gtx.rotate(90 * i);
+							gtx.moveTo(-width/4+0.05, 0.05);
+							gtx.lineTo(-width/4, 0);
+							gtx.lineTo(-width/4+0.05, -0.05);
+						gtx.restore();
+					}
+					
+					gtx.stroke();
+				gtx.closePath();
 			}else if(renderType == RenderType.DELETE_ITEM){
 				// Render like a wire portion
 				
@@ -721,7 +757,7 @@ public class ClassicRenderer implements Renderer {
 				if(r instanceof DelayNode){ // IF IT IS A DELAY NODE LOL
 					DelayNode dn = (DelayNode) r;
 					
-					if(getNodeAt(mousePos.getX(), mousePos.getY()) == dn){ // IF WE ARE POINTING AT IT OMG
+					if(world.getNodeOn(mousePos.getX(), mousePos.getY()) == dn){ // IF WE ARE POINTING AT IT OMG
 						gtx.save();
 							gtx.setTransform(new Affine());
 							
@@ -774,72 +810,6 @@ public class ClassicRenderer implements Renderer {
 	}
 	
 	// utilities
-	private Point2D getInputPos(Node n, int in){
-		double percent = (in + 0.5) / (double) n.getInputs().length;
-		
-		// Relative to the center
-		double x = -n.getWidth()/2;
-		double y = n.getHeight()/2 - n.getHeight() * percent;
-		
-		double ang = -90 * n.getOrientation();
-		
-		Affine rotation = new Affine();
-		rotation.appendRotation(ang);
-		
-		return rotation.transform(x, y);
-	}
-	
-	private Point2D getOutputPos(Node n, int out){
-		double percent = (out + 0.5) / (double) n.getOutputs().length;
-		
-		// Relative to the center
-		double x = n.getWidth()/2;
-		double y = n.getHeight()/2 - n.getHeight() * percent;
-
-		double ang = -90 * n.getOrientation();
-		
-		Affine rotation = new Affine();
-		rotation.appendRotation(ang);
-
-		// - 0.05 on x just for swag, no calc errors, i promise (to myself)
-		return rotation.transform(x - 0.05, y);
-	}
-	
-	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / scale - translateX;
-		
-		return wx;
-	}
-	
-	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / scale - translateY;
-		
-		return wy;
-	}
-	
-	private int sceneToWorldXCase(double x){
- 		int cx = (int) Math.floor(sceneToWorldX(x) + 0.5);
-		return cx;
-	}
-	
-	private int sceneToWorldYCase(double y){
-		int cy = (int) Math.ceil(sceneToWorldY(y) - 0.5);
-		return cy;
-	}
-	
- 	private Node getNodeAt(double sceneX, double sceneY){
- 		int cx = sceneToWorldXCase(sceneX);
-		int cy = sceneToWorldYCase(sceneY);
-		
-		for(Node n : world.getNodes()){
-			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
-				return n;
-			}
-		}
-	 	
- 		return null;
- 	}
-	
 	private RenderType determineRenderType(Renderable r){
 		Class<? extends Renderable> c = null;
 		
@@ -865,6 +835,8 @@ public class ClassicRenderer implements Renderer {
 			rt = RenderType.SWITCH_COMPONENT;
 		}else if(c == WireItem.class){
 			rt = RenderType.WIRE_ITEM;
+		}else if(c == MoveItem.class){
+			rt = RenderType.MOVE_ITEM;
 		}else if(c == ActionItem.class){
 			rt = RenderType.ACTION_ITEM;
 		}else if(c == DeleteItem.class){

@@ -56,26 +56,6 @@ public class NodeItem extends InventoryItem {
 	}
 	
 	// Unused method for inventory item
-	public double getX() {
-		return 0;
-	}
-	
-	public double getY() {
-		return 0;
-	}
-	
-	public double getWidth() {
-		return 1;
-	}
-	
-	public double getHeight() {
-		return 1;
-	}
-	
-	public int getOrientation() {
-		return 0;
-	}
-	
 	public String getDisplayName() {
 		return (String) getProperty("displayName");
 	}

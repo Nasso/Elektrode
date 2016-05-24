@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<world>
+    <!-- Generator: XMLWorldCodec -->
+    <viewport scale="43.5" transX="-5.851076364208332" transY="3.96304156686598"/>
+    <inventory itemCount="66" selected="44">
+        <item hid="0" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="1" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="2" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="3" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="4" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="5" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="6" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="7" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="8" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="9" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="10" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+        <item hid="11" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="12" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="13" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="14" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="15" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="16" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="17" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="18" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="19" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="20" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="21" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+        <item hid="22" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="23" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="24" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="25" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="26" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="27" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="28" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="29" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="30" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="31" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="32" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+        <item hid="33" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="34" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="35" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="36" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="37" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="38" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="39" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="40" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="41" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="42" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="43" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+        <item hid="44" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="45" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="46" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="47" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="48" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="49" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="50" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="51" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="52" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="53" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="54" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+        <item hid="55" type="io.github.nasso.elektrode.model.WireItem">
+            <properties/>
+        </item>
+        <item hid="56" type="io.github.nasso.elektrode.model.ActionItem">
+            <properties/>
+        </item>
+        <item hid="57" type="io.github.nasso.elektrode.model.MoveItem">
+            <properties/>
+        </item>
+        <item hid="58" type="io.github.nasso.elektrode.model.DeleteItem">
+            <properties/>
+        </item>
+        <item hid="59" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Generator</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.Generator</prop>
+            </properties>
+        </item>
+        <item hid="60" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">No logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.NoLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="61" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">And logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.AndLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="62" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Or logic gate</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.OrLogicGate</prop>
+            </properties>
+        </item>
+        <item hid="63" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Lamp</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.LampComponent</prop>
+            </properties>
+        </item>
+        <item hid="64" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Switch</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.SwitchComponent</prop>
+            </properties>
+        </item>
+        <item hid="65" type="io.github.nasso.elektrode.model.NodeItem">
+            <properties>
+                <prop name="displayName" type="java.lang.String">Delay node</prop>
+                <prop name="sourceClass" type="java.lang.String">io.github.nasso.elektrode.model.DelayNode</prop>
+            </properties>
+        </item>
+    </inventory>
+    <nodes nodeCount="14">
+        <node hid="0" type="io.github.nasso.elektrode.model.Generator">
+            <worldX>0.0</worldX>
+            <worldY>-2.0</worldY>
+            <orientation>0</orientation>
+            <properties/>
+            <outputs outputCount="1">
+                <out outID="0" state="true">
+                    <dest targetHID="1" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="0"/>
+        </node>
+        <node hid="1" type="io.github.nasso.elektrode.model.SwitchComponent">
+            <worldX>2.0</worldX>
+            <worldY>-2.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="state" type="java.lang.Boolean">false</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="6" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="2" type="io.github.nasso.elektrode.model.NoLogicGate">
+            <worldX>6.0</worldX>
+            <worldY>1.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="inverted" type="java.lang.Boolean">false</prop>
+                <prop name="inputCount" type="java.lang.Integer">1</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="5" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="3" type="io.github.nasso.elektrode.model.DelayNode">
+            <worldX>8.0</worldX>
+            <worldY>-3.0</worldY>
+            <orientation>1</orientation>
+            <properties>
+                <prop name="delay" type="java.lang.Long">100</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="4" targetInput="0"/>
+                    <dest targetHID="7" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="4" type="io.github.nasso.elektrode.model.LampComponent">
+            <worldX>10.0</worldX>
+            <worldY>-4.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="activated" type="java.lang.Boolean">false</prop>
+            </properties>
+            <outputs outputCount="0"/>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="5" type="io.github.nasso.elektrode.model.DelayNode">
+            <worldX>8.0</worldX>
+            <worldY>-1.0</worldY>
+            <orientation>1</orientation>
+            <properties>
+                <prop name="delay" type="java.lang.Long">100</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="3" targetInput="0"/>
+                    <dest targetHID="9" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="6" type="io.github.nasso.elektrode.model.AndLogicGate">
+            <worldX>4.0</worldX>
+            <worldY>-1.0</worldY>
+            <orientation>3</orientation>
+            <properties>
+                <prop name="inverted" type="java.lang.Boolean">false</prop>
+                <prop name="inputCount" type="java.lang.Integer">2</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="2" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="2"/>
+        </node>
+        <node hid="7" type="io.github.nasso.elektrode.model.DelayNode">
+            <worldX>8.0</worldX>
+            <worldY>-5.0</worldY>
+            <orientation>1</orientation>
+            <properties>
+                <prop name="delay" type="java.lang.Long">100</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="8" targetInput="0"/>
+                    <dest targetHID="10" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="8" type="io.github.nasso.elektrode.model.LampComponent">
+            <worldX>10.0</worldX>
+            <worldY>-6.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="activated" type="java.lang.Boolean">false</prop>
+            </properties>
+            <outputs outputCount="0"/>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="9" type="io.github.nasso.elektrode.model.LampComponent">
+            <worldX>10.0</worldX>
+            <worldY>-2.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="activated" type="java.lang.Boolean">false</prop>
+            </properties>
+            <outputs outputCount="0"/>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="10" type="io.github.nasso.elektrode.model.DelayNode">
+            <worldX>8.0</worldX>
+            <worldY>-7.0</worldY>
+            <orientation>1</orientation>
+            <properties>
+                <prop name="delay" type="java.lang.Long">100</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="11" targetInput="0"/>
+                    <dest targetHID="12" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="11" type="io.github.nasso.elektrode.model.LampComponent">
+            <worldX>10.0</worldX>
+            <worldY>-8.0</worldY>
+            <orientation>0</orientation>
+            <properties>
+                <prop name="activated" type="java.lang.Boolean">false</prop>
+            </properties>
+            <outputs outputCount="0"/>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="12" type="io.github.nasso.elektrode.model.NoLogicGate">
+            <worldX>6.0</worldX>
+            <worldY>-8.0</worldY>
+            <orientation>2</orientation>
+            <properties>
+                <prop name="inverted" type="java.lang.Boolean">false</prop>
+                <prop name="inputCount" type="java.lang.Integer">1</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="false">
+                    <dest targetHID="13" targetInput="0"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+        <node hid="13" type="io.github.nasso.elektrode.model.NoLogicGate">
+            <worldX>4.0</worldX>
+            <worldY>-5.0</worldY>
+            <orientation>3</orientation>
+            <properties>
+                <prop name="inverted" type="java.lang.Boolean">true</prop>
+                <prop name="inputCount" type="java.lang.Integer">1</prop>
+            </properties>
+            <outputs outputCount="1">
+                <out outID="0" state="true">
+                    <dest targetHID="6" targetInput="1"/>
+                </out>
+            </outputs>
+            <inputs inputCount="1"/>
+        </node>
+    </nodes>
+</world>

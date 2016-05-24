@@ -10,6 +10,7 @@ import io.github.nasso.elektrode.model.Generator;
 import io.github.nasso.elektrode.model.Input;
 import io.github.nasso.elektrode.model.InventoryItem;
 import io.github.nasso.elektrode.model.LampComponent;
+import io.github.nasso.elektrode.model.MoveItem;
 import io.github.nasso.elektrode.model.NoLogicGate;
 import io.github.nasso.elektrode.model.Node;
 import io.github.nasso.elektrode.model.NodeItem;
@@ -18,8 +19,8 @@ import io.github.nasso.elektrode.model.Output;
 import io.github.nasso.elektrode.model.SwitchComponent;
 import io.github.nasso.elektrode.model.WireItem;
 import io.github.nasso.elektrode.model.World;
-import io.github.nasso.elektrode.view.ClassicRenderer;
-import io.github.nasso.elektrode.view.Renderer;
+import io.github.nasso.elektrode.view.ClassicView;
+import io.github.nasso.elektrode.view.View;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +41,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -62,7 +64,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.transform.Affine;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -71,10 +72,10 @@ import javafx.util.Duration;
 public class Elektrode extends Application {
 	/*
 	 * 
-	 * CTRL + SHIFT + DIVIDE
+	 * CTRL + SHIFT + MULTIPLY
 	 * 		collapse
 	 * 
-	 * CTRL + SHIFT + MULTIPLY
+	 * CTRL + MULTIPLY
 	 * 		uncollapse
 	 * 
 	 */
@@ -100,13 +101,14 @@ public class Elektrode extends Application {
 	private double lastX = -1;
 	private double lastY = -1;
 	
-	private Renderer renderer = new ClassicRenderer();
+	private View view = new ClassicView();
 	private World world = new World();
 	private WorldCodec codec = new XMLWorldCodec();
 	private Path openedPath = null;
 	private FileChooser fileChooser = null;
 	
 	private Output originWireOut = null;
+	private Node movingNode = null;
 	private Point2D mousePos = new Point2D(0, 0);
 	
 	private Scene createScene(Stage stg){
@@ -122,7 +124,7 @@ public class Elektrode extends Application {
 		
 		Scene sce = new Scene(g);
 		
-		sce.setOnScroll(new EventHandler<ScrollEvent>() {
+		cvs.setOnScroll(new EventHandler<ScrollEvent>() {
 			public void handle(ScrollEvent event) {
 				if(event.isControlDown()){
 					double scale = world.getViewport().getScale();
@@ -135,25 +137,36 @@ public class Elektrode extends Application {
 					world.getViewport().setScale(scale);
 				}else{
 					world.getInventory().moveSelectedSlot((int) -Math.signum(event.getDeltaY()));
+
+					InventoryItem item = world.getInventory().getSelectedItem();
+					
+					if(item instanceof MoveItem){
+						cvs.setCursor(Cursor.MOVE);
+					}else{
+						cvs.setCursor(Cursor.DEFAULT);
+					}
 				}
 			}
 		});
 		
-		sce.setOnMousePressed(new EventHandler<MouseEvent>(){
+		cvs.setOnMousePressed(new EventHandler<MouseEvent>(){
 			public void handle(MouseEvent event) {
 				boolean saveStateBefore = isSaved;
+				
+				InventoryItem item = world.getInventory().getSelectedItem();
+				
+				double sceneCX = event.getX() - cvs.getWidth()/2;
+				double sceneCY = -event.getY() + cvs.getHeight()/2;
 				
 			 	if(event.getButton() == MouseButton.PRIMARY){
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
 				}else if(event.getButton() == MouseButton.SECONDARY){
-					InventoryItem item = world.getInventory().getSelectedItem();
-					
 					if(item instanceof NodeItem){
 						Node clone = ((NodeItem) item).createNodeFromSource();
 						
-						int cx = (int) Math.floor(sceneToWorldX(event.getSceneX()) + 0.5);
-						int cy = (int) Math.ceil(sceneToWorldY(sce.getHeight() - event.getSceneY()) - 0.5);
+						int cx = world.getCaseX(sceneCX);
+						int cy = world.getCaseY(sceneCY);
 						
 						for(Node n : world.getNodes()){
 							if(n.getX() == cx && n.getY() == cy){ // if there is already a node
@@ -188,46 +201,32 @@ public class Elektrode extends Application {
 						world.getNodes().add(clone);
 						isSaved = false;
 					}else if(item instanceof WireItem){
-						double sx = event.getSceneX();
-						double sy = event.getSceneY();
-						
-						Output out = getOutputAt(sx, sy); // returns null if unfound
+						Output out = world.getOutputAt(sceneCX, sceneCY); // returns null if unfound
 						
 						if(out != null){ // if found
 							originWireOut = out; // take a wire from there
 						}else{
-							Input in = getInputAt(sx, sy); // returns null if unfound
+							Input in = world.getInputAt(sceneCX, sceneCY); // returns null if unfound
 							
 							if(in != null){ // if found
 								if(in.getOrigin() != null){ // take the wire
 									originWireOut = in.getOrigin();
 									originWireOut.removeDestination(in); // remove the old
 									isSaved = false;
-								}else if(originWireOut != null){ // relies the wire if there is one
-									if(in.getOwner() != originWireOut.getOwner()){
-										originWireOut.addDestination(in);
-										isSaved = false;
-										
-										originWireOut = null;
-									}
 								}
 							}
 						}
 					}else if(item instanceof ActionItem){
-						double sx = event.getSceneX();
-						double sy = sce.getHeight() - event.getSceneY();
-						
-						Node n = getNodeAt(sx, sy);
+						Node n = world.getNodeOn(sceneCX, sceneCY);
 						
 						if(n != null){
 							n.onAction();
 							isSaved = false;
 						}
+					}else if(item instanceof MoveItem){
+						movingNode = world.getNodeOn(sceneCX, sceneCY);
 					}else if(item instanceof DeleteItem){
-						double sx = event.getSceneX();
-						double sy = sce.getHeight() - event.getSceneY();
-						
-						Node n = getNodeAt(sx, sy);
+						Node n = world.getNodeOn(sceneCX, sceneCY);
 						
 						if(n != null){
 							n.clearInputs();
@@ -237,14 +236,8 @@ public class Elektrode extends Application {
 						}
 					}
 				}else if(event.getButton() == MouseButton.MIDDLE){
-					// Uncomment if other actions needed, but I think not
-					// InventoryItem item = inventory.getSelectedItem();
-					
 					// Always turn
-					double sx = event.getSceneX();
-					double sy = sce.getHeight() - event.getSceneY();
-					
-					Node n = getNodeAt(sx, sy);
+					Node n = world.getNodeOn(sceneCX, sceneCY);
 					
 					if(n != null){
 						n.turnRight();
@@ -258,8 +251,43 @@ public class Elektrode extends Application {
 			}
 		});
 		
-		sce.setOnMouseDragged(new EventHandler<MouseEvent>() {
+		cvs.setOnMouseReleased(new EventHandler<MouseEvent>(){
 			public void handle(MouseEvent event) {
+				boolean saveStateBefore = isSaved;
+				
+				double sceneCX = event.getX() - cvs.getWidth()/2;
+				double sceneCY = -event.getY() + cvs.getHeight()/2;
+				
+				if(event.getButton() == MouseButton.SECONDARY){
+					if(originWireOut != null){ // relies the wire if there is one
+						Input in = world.getInputAt(sceneCX, sceneCY); // returns null if unfound
+						
+						if(in == null){
+							originWireOut = null;
+						}else if(in.getOwner() != originWireOut.getOwner()){
+							originWireOut.addDestination(in);
+							isSaved = false;
+							
+							originWireOut = null;
+						}
+					}
+					
+					movingNode = null;
+				}
+			 	
+			 	if(saveStateBefore != isSaved){ // If changes
+			 		updateStageTitle();
+			 	}
+			}
+		});
+		
+		cvs.setOnMouseDragged(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent event) {
+				double sceneCX = event.getX() - cvs.getWidth()/2;
+				double sceneCY = -event.getY() + cvs.getHeight()/2;
+				
+				mousePos = new Point2D(sceneCX, sceneCY);
+				
 				if(event.getButton() == MouseButton.PRIMARY){
 					world.getViewport().translate(
 							(event.getSceneX() - lastX) / world.getViewport().getScale(),
@@ -267,17 +295,41 @@ public class Elektrode extends Application {
 					
 					lastX = event.getSceneX();
 					lastY = event.getSceneY();
+				}else if(event.getButton() == MouseButton.SECONDARY){
+					InventoryItem item = world.getInventory().getSelectedItem();
+					
+					if(item instanceof MoveItem){
+						if(movingNode != null){
+							int cx = world.getCaseX(sceneCX);
+							int cy = world.getCaseY(sceneCY);
+							
+							movingNode.setX(cx);
+							movingNode.setY(cy);
+						}
+					}else if(item instanceof DeleteItem){
+						Node n = world.getNodeOn(sceneCX, sceneCY);
+						
+						if(n != null){
+							n.clearInputs();
+							n.clearOutputs();
+							world.getNodes().remove(n);
+							isSaved = false;
+						}
+					}
 				}
 			}
 		});
 		
-		sce.setOnMouseMoved(new EventHandler<MouseEvent>() {
+		cvs.setOnMouseMoved(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
-				mousePos = new Point2D(event.getSceneX(), sce.getHeight() - event.getSceneY());
+				double sceneCX = event.getX() - cvs.getWidth()/2;
+				double sceneCY = -event.getY() + cvs.getHeight()/2;
+				
+				mousePos = new Point2D(sceneCX, sceneCY);
 			}
 		});
 		
-		sce.setOnKeyPressed(new EventHandler<KeyEvent>() {
+		cvs.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent event) {
 				if(event.getCode() == KeyCode.ESCAPE){
 					// release the wire !!
@@ -288,8 +340,9 @@ public class Elektrode extends Application {
 		});
 		
 		// Cvs
+		cvs.layoutYProperty().bind(menuBar.heightProperty());
 		cvs.widthProperty().bind(sce.widthProperty());
-		cvs.heightProperty().bind(sce.heightProperty());
+		cvs.heightProperty().bind(sce.heightProperty().subtract(menuBar.heightProperty()));
 		
 		// Menubar
 		Menu fileMenu = new Menu("File");
@@ -483,90 +536,6 @@ public class Elektrode extends Application {
 		}
  	}
  	
- 	private Point2D getInputPos(Node n, int in){
-		double percent = (in + 0.5) / (double) n.getInputs().length;
-		
-		// Relative to the center
-		double x = -n.getWidth()/2;
-		double y = n.getHeight()/2 - n.getHeight() * percent;
-
-		double ang = -90 * n.getOrientation();
-		
-		Affine rotation = new Affine();
-		rotation.appendRotation(ang);
-		
-		return rotation.transform(x, y);
-	}
-	
-	private Point2D getOutputPos(Node n, int out){
-		double percent = (out + 0.5) / (double) n.getOutputs().length;
-		
-		// Relative to the center
-		double x = n.getWidth()/2;
-		double y = n.getHeight()/2 - n.getHeight() * percent;
-
-		double ang = -90 * n.getOrientation();
-		
-		Affine rotation = new Affine();
-		rotation.appendRotation(ang);
-
-		// - 0.05 on x just for swag, no calc errors, i promise (to myself)
-		return rotation.transform(x - 0.05, y);
-	}
-	
-	private Input getInputAt(double sceneX, double sceneY){
- 		double inRadius = 0.2;
- 		
- 		for(Node n : world.getNodes()){
- 			Input[] ins = n.getInputs();
- 			for(int i = 0; i < ins.length; i++){
- 				Point2D op = getInputPos(n, i).add(new Point2D(n.getX(), n.getY()));
- 				Point2D sp = new Point2D(sceneToWorldX(sceneX), sceneToWorldY(cvs.getHeight() - sceneY));
- 				
- 				double distance = op.distance(sp);
- 				
- 				if(distance <= inRadius){ // "is in" trick with radius omg i'm a f*cking genius xd lol
- 					return ins[i];
- 				}
- 			}
- 		}
-	 	
- 		return null;
- 	}
-	
- 	private Output getOutputAt(double sceneX, double sceneY){
- 		double outRadius = 0.3;
- 		
- 		for(Node n : world.getNodes()){
- 			Output[] outs = n.getOutputs();
- 			for(int i = 0; i < outs.length; i++){
- 				Point2D op = getOutputPos(n, i).add(new Point2D(n.getX(), n.getY()));
- 				Point2D sp = new Point2D(sceneToWorldX(sceneX), sceneToWorldY(cvs.getHeight() - sceneY));
- 				
- 				double distance = op.distance(sp);
- 				
- 				if(distance <= outRadius){ // "is in" trick with radius omg i'm a f*cking genius xd lol
- 					return outs[i];
- 				}
- 			}
- 		}
-	 	
- 		return null;
- 	}
-	
- 	private Node getNodeAt(double sceneX, double sceneY){
- 		int cx = (int) Math.floor(sceneToWorldX(sceneX) + 0.5);
-		int cy = (int) Math.ceil(sceneToWorldY(sceneY) - 0.5);
-		
-		for(Node n : world.getNodes()){
-			if(n.getX() == cx && n.getY() == cy){ // if there is already a node
-				return n;
-			}
-		}
-	 	
- 		return null;
- 	}
- 	
 	public void start(Stage s) throws Exception {
 		this.stg = s;
 		
@@ -595,28 +564,12 @@ public class Elektrode extends Application {
 		
 		timer.start();
 		
-		List<String> args = this.getParameters().getUnnamed(); 
-		if(!args.isEmpty()){
-			Path arg = Paths.get(args.get(0));
-			
-			if(Files.exists(arg)){
-				initElogic(arg);
-			}else{
-				initElogic();
-			}
-		}
-	}
-	
-	private double sceneToWorldX(double x){
-		double wx = (x - cvs.getWidth()/2) / world.getViewport().getScale() - world.getViewport().getTranslateX();
+		List<String> args = this.getParameters().getUnnamed();
+		Path arg = null;
 		
-		return wx;
-	}
-	
-	private double sceneToWorldY(double y){
-		double wy = (y - cvs.getHeight()/2) / world.getViewport().getScale() - world.getViewport().getTranslateY();
+		if(!args.isEmpty()) arg = Paths.get(args.get(0));
 		
-		return wy;
+		initElogic(arg);
 	}
 	
 	private void initElogic(Path open){
@@ -632,6 +585,7 @@ public class Elektrode extends Application {
 		world.getInventory().addAllItems(
 				new WireItem(),
 				new ActionItem(),
+				new MoveItem(),
 				new DeleteItem(),
 				
 				new NodeItem(Generator.class, "Generator"),
@@ -671,7 +625,7 @@ public class Elektrode extends Application {
 			lastFPSUpdate = nowms;
 		}
 		
-		renderer.render(cvs, originWireOut, mousePos, world, delta, nowms);
+		view.renderWorld(cvs, originWireOut, mousePos, world, delta, nowms);
 	}
 	
 	public static void main(String[] args) {

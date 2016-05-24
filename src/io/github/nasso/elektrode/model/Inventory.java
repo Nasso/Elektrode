@@ -98,6 +98,10 @@ public class Inventory {
 	}
 	
 	public InventoryItem getItem(int index){
+		if(items.isEmpty()){
+			throw new IllegalStateException("Trying to get the item #"+index+" on an empty inventory");
+		}
+		
 		// Security is in this method
 		if(index >= items.size()){
 			index = index % items.size(); // rest of index/size so just the offset B)

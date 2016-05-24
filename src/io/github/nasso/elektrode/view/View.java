@@ -5,8 +5,8 @@ import io.github.nasso.elektrode.model.World;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 
-public interface Renderer {
-	public void render(
+public abstract class View {
+	public abstract void renderWorld(
 			Canvas cvs,
 			Output originWireOutput,
 			Point2D mousePos,

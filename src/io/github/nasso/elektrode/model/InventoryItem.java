@@ -16,6 +16,25 @@ public abstract class InventoryItem implements Renderable {
 		this.setProperties(properties);
 	}
 	
+	public double getX() {
+		return 0;
+	}
+
+	public double getY() {
+		return 0;
+	}
+
+	public double getWidth() {
+		return 1;
+	}
+
+	public double getHeight() {
+		return 1;
+	}
+
+	public int getOrientation() {
+		return 0;
+	}
 	
 	public void setProperty(String name, Object o){
 		properties.put(name, o);
