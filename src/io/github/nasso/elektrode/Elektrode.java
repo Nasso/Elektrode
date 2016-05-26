@@ -536,7 +536,31 @@ public class Elektrode extends Application {
 		}
  	}
  	
+ 	public void checkUpdate(){
+		try {
+			if(Updater.isUpdateAvailable()){
+				Alert confirmation = new Alert(AlertType.CONFIRMATION, "", ButtonType.YES, ButtonType.NO);
+				confirmation.setHeaderText("An update is available, would you like to download it?");
+				confirmation.setTitle("ELektrode update");
+				
+				confirmation.showAndWait().ifPresent(result -> {
+					if(result == ButtonType.YES){
+						try {
+							Updater.forceUpdate(this);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+ 	}
+ 	
 	public void start(Stage s) throws Exception {
+		checkUpdate();
+		
 		this.stg = s;
 		
 		stg.setMaximized(true);
@@ -570,6 +594,10 @@ public class Elektrode extends Application {
 		if(!args.isEmpty()) arg = Paths.get(args.get(0));
 		
 		initElogic(arg);
+	}
+	
+	public void stop(){
+		System.exit(0);
 	}
 	
 	private void initElogic(Path open){
@@ -612,7 +640,7 @@ public class Elektrode extends Application {
 	}
 	
 	private void updateStageTitle(){
-		stg.setTitle("Elektrode - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
+		stg.setTitle("OLD OMG - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
 	}
 	
 	private void loopUpdate(double delta, long nowms){
