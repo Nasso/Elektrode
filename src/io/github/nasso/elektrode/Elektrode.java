@@ -541,7 +541,7 @@ public class Elektrode extends Application {
 			if(Updater.isUpdateAvailable()){
 				Alert confirmation = new Alert(AlertType.CONFIRMATION, "", ButtonType.YES, ButtonType.NO);
 				confirmation.setHeaderText("An update is available, would you like to download it?");
-				confirmation.setTitle("ELektrode update");
+				confirmation.setTitle("Elektrode update");
 				
 				confirmation.showAndWait().ifPresent(result -> {
 					if(result == ButtonType.YES){

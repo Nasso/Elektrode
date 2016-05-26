@@ -27,6 +27,7 @@ public class Updater {
 	
 	public static boolean isUpdateAvailable() throws IOException{
 		if(!Files.exists(versionFile)){
+			Files.createFile(versionFile);
 			return true;
 		}
 		
