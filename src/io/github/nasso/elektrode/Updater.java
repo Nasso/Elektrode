@@ -39,10 +39,13 @@ public class Updater {
 		String lastVersion = IOStreamUtils.decodeUTF8(in);
 		in.close();
 		
-		System.out.println("Current version: '"+currVersion+"'");
-		System.out.println("Last version: '"+lastVersion+"'");
+		if(currVersion.equals(lastVersion)){
+			System.out.println("Current version up-to-date ("+currVersion+")");
+			return false;
+		}
 		
-		return !currVersion.equals(lastVersion);
+		System.out.println("A new version is available: "+lastVersion);
+		return true;
 	}
 	
 	public static void updateIfAvailable(Application app) throws IOException{

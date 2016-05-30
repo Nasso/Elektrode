@@ -554,7 +554,7 @@ public class Elektrode extends Application {
 				});
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println("Connexion error: "+e.getMessage());
 		}
  	}
  	
@@ -640,7 +640,7 @@ public class Elektrode extends Application {
 	}
 	
 	private void updateStageTitle(){
-		stg.setTitle("OLD OMG - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
+		stg.setTitle("Elektrode - "+getOpenedName()+(isSaved ? "" : "*")+" - "+Elektrode.this.fps+"FPS");
 	}
 	
 	private void loopUpdate(double delta, long nowms){
